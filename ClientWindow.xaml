@@ -1,0 +1,129 @@
+﻿<Window x:Class="Practice.ClientWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Practice"
+        mc:Ignorable="d"
+        Title="ClientWindow" Height="450" Width="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <!-- DataGrid -->
+            <RowDefinition Height="Auto" />
+            <!-- Заголовки полей -->
+            <RowDefinition Height="Auto" />
+            <!-- Поля ввода -->
+            <RowDefinition Height="Auto" />
+            <!-- Кнопки -->
+            <RowDefinition Height="10" />
+            <!-- Отступ снизу -->
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- DataGrid с настройками -->
+        <DataGrid x:Name="ClientDataGrid" 
+                  Grid.Row="0" 
+                  Grid.ColumnSpan="3"
+                  Margin="10"
+                  AutoGenerateColumns="True"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  IsReadOnly="True"
+                  HorizontalScrollBarVisibility="Disabled">
+
+            <!-- Стиль для растягивания столбцов -->
+            <DataGrid.Resources>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                </Style>
+            </DataGrid.Resources>
+        </DataGrid>
+
+        <!-- Заголовки полей ввода -->
+        <Label Content="Имя" 
+               Grid.Row="1" 
+               Grid.Column="0" 
+               HorizontalAlignment="Center" 
+               Margin="0,5,0,0" 
+               FontSize="14" 
+               VerticalAlignment="Top"
+               FontWeight="Bold"/>
+
+        <Label Content="Отчество" 
+               Grid.Row="1" 
+               Grid.Column="1" 
+               HorizontalAlignment="Center" 
+               Margin="0,5,0,0" 
+               FontSize="14" 
+               VerticalAlignment="Top"
+               FontWeight="Bold"/>
+
+        <Label Content="Фамилия" 
+               Grid.Row="1" 
+               Grid.Column="2" 
+               HorizontalAlignment="Center" 
+               Margin="0,5,0,0" 
+               FontSize="14" 
+               VerticalAlignment="Top"
+               FontWeight="Bold"/>
+
+        <!-- Поля ввода -->
+        <TextBox x:Name="FirstNameTextBox"
+                 Grid.Row="2"
+                 Grid.Column="0"
+                 Margin="10,5,5,10"
+                 Height="30"
+                 VerticalContentAlignment="Center"/>
+
+        <TextBox x:Name="SurnameNameTextBox"
+                 Grid.Row="2"
+                 Grid.Column="1"
+                 Margin="5,5,5,10"
+                 Height="30"
+                 VerticalContentAlignment="Center"/>
+
+        <TextBox x:Name="LastNameTextBox"
+                 Grid.Row="2"
+                 Grid.Column="2"
+                 Margin="5,5,10,10"
+                 Height="30"
+                 VerticalContentAlignment="Center"/>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="3"
+                    Grid.ColumnSpan="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="10,5,10,10">
+
+            <Button Content="Добавить"
+                    Click="AddButton_Click"
+                    Width="100"
+                    Height="30"
+                    Margin="0,0,5,0"/>
+
+            <Button Content="Изменить"
+                    Click="UpdateButton_Click"
+                    Width="100"
+                    Height="30"
+                    Margin="5,0,5,0"/>
+
+            <Button Content="Удалить"
+                    Click="DeleteButton_Click"
+                    Width="100"
+                    Height="30"
+                    Margin="5,0,0,0"/>
+        </StackPanel>
+
+    </Grid>
+</Window>
