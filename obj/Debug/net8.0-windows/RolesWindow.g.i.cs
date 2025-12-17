@@ -69,7 +69,7 @@ namespace Practice {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Practice;V1.0.0.0;component/roleswindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Practice;component/roleswindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\RolesWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

@@ -37,3 +37,13 @@ C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debu
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\CategoryWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RolesWindow.g.cs
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RolesWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\UserWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\UserWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\ClientIntefaceWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\ClientIntefaceWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\EmployeeInterfaceWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\EmployeeInterfaceWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\DishWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\DishWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderWindow.g.cs

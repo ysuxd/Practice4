@@ -3,15 +3,88 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Practice"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Авторизация" Height="300" Width="400"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
     <Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="320,304,0,0" VerticalAlignment="Top" Height="77" Width="120" Click="Button_Click"/>
-        <Button Content="Button" HorizontalAlignment="Center" Margin="0,229,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="105,274,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="210,44,0,0" VerticalAlignment="Top" Click="Button_Click_3"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="645,109,0,0" VerticalAlignment="Top" Click="Button_Click_4"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Заголовок -->
+        <Label Content="Система авторизации" 
+               Grid.Row="0" 
+               Grid.ColumnSpan="2"
+               HorizontalAlignment="Center"
+               FontSize="18"
+               FontWeight="Bold"
+               Margin="0,20,0,20"/>
+
+        <!-- Логин -->
+        <Label Content="Логин:" 
+               Grid.Row="1" 
+               Grid.Column="0"
+               HorizontalAlignment="Right"
+               Margin="10,5,10,5"/>
+
+        <TextBox x:Name="LoginTextBox" 
+                 Grid.Row="1" 
+                 Grid.Column="1"
+                 Margin="10,5,20,5"
+                 Height="25"/>
+
+        <!-- Пароль -->
+        <Label Content="Пароль:" 
+               Grid.Row="2" 
+               Grid.Column="0"
+               HorizontalAlignment="Right"
+               Margin="10,5,10,5"/>
+
+        <PasswordBox x:Name="PasswordBox" 
+                     Grid.Row="2" 
+                     Grid.Column="1"
+                     Margin="10,5,20,5"
+                     Height="25"/>
+
+        <!-- Сообщение об ошибке -->
+        <TextBlock x:Name="ErrorMessageTextBlock"
+                   Grid.Row="3"
+                   Grid.ColumnSpan="2"
+                   Foreground="Red"
+                   HorizontalAlignment="Center"
+                   Margin="10,10,10,10"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"/>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="4" 
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,20">
+
+            <Button x:Name="LoginButton" 
+                    Content="Войти"
+                    Click="LoginButton_Click"
+                    Width="100"
+                    Height="30"
+                    Margin="5,0,5,0"/>
+
+            <Button Content="Выход"
+                    Click="ExitButton_Click"
+                    Width="100"
+                    Height="30"
+                    Margin="5,0,5,0"/>
+        </StackPanel>
     </Grid>
 </Window>

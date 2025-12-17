@@ -35,7 +35,7 @@ namespace Practice
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                string query = "SELECT clientid, firstname, surname, lastname FROM client ORDER BY employeeid ASC";
+                string query = "SELECT clientid, firstname, surname, lastname FROM Client ORDER BY clientid ASC";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     using (var adapter = new NpgsqlDataAdapter(command))
