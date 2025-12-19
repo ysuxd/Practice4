@@ -23,8 +23,6 @@ namespace Practice
     {
         private DatabaseConnection dbconnection;
 
-
-
         public RolesWindow()
         {
             InitializeComponent();
@@ -32,6 +30,7 @@ namespace Practice
             dbconnection = new DatabaseConnection();
             LoadData();
         }
+
         public void LoadData()
         {
             using (var connection = dbconnection.GetConnection())
@@ -71,17 +70,17 @@ namespace Practice
             }
         }
 
-
         private void UpdateClient(int roleid, string roleName)
         {
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                string query = "Update roles set rolename=@roleName WHERE roleyd=@roleid";
+                // ИСПРАВЛЕНО: было "roleyd", должно быть "roleid"
+                string query = "Update roles set rolename=@roleName WHERE roleid=@roleid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@roleName", roleName);
-                    command.Parameters.AddWithValue("@roleid", roleid); // Добавлен этот параметр
+                    command.Parameters.AddWithValue("@roleid", roleid);
                     command.ExecuteNonQuery();
                 }
             }
@@ -121,7 +120,8 @@ namespace Practice
             DataRowView selectedRow = (DataRowView)RolesDataGrid.SelectedItem;
             if (selectedRow != null)
             {
-                int roleid = Convert.ToInt32(selectedRow["roleid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "roleid"
+                int roleid = Convert.ToInt32(selectedRow["Номер"]);
                 string roleName = RolesNameTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(roleName))
                 {
@@ -130,12 +130,12 @@ namespace Practice
                 }
                 else
                 {
-                    MessageBox.Show("Пожалуйста,введите корректные данные для обновления");
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
                 }
             }
             else
             {
-                MessageBox.Show("Пожалуйста,выберите строку для обновления");
+                MessageBox.Show("Пожалуйста, выберите строку для обновления");
             }
         }
 
@@ -145,7 +145,8 @@ namespace Practice
 
             if (selectedRow != null)
             {
-                int roleid = Convert.ToInt32(selectedRow["roleid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "roleid"
+                int roleid = Convert.ToInt32(selectedRow["Номер"]);
                 DeleteClient(roleid);
                 LoadData();
             }

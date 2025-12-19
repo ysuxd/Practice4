@@ -118,21 +118,10 @@ namespace Practice
             DataRowView selectedRow = (DataRowView)StatusDataGrid.SelectedItem;
             if (selectedRow != null)
             {
-                int statusid = Convert.ToInt32(selectedRow["statusid"]);
+                // Используйте новое имя столбца
+                int statusid = Convert.ToInt32(selectedRow["Номер"]);
                 string statusName = StatusNameTextBox.Text;
-                if (!string.IsNullOrWhiteSpace(statusName))
-                {
-                    UpdateClient(statusid, statusName);
-                    LoadData();
-                }
-                else
-                {
-                    MessageBox.Show("Пожалуйста,введите корректные данные для обновления");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Пожалуйста,выберите строку для обновления");
+                // ... остальной код
             }
         }
 
@@ -142,13 +131,10 @@ namespace Practice
 
             if (selectedRow != null)
             {
-                int statusid = Convert.ToInt32(selectedRow["statusid"]);
+                // Используйте новое имя столбца
+                int statusid = Convert.ToInt32(selectedRow["Номер"]);
                 DeleteClient(statusid);
                 LoadData();
-            }
-            else
-            {
-                MessageBox.Show("Пожалуйста, выберите строку для удаления");
             }
         }
     }

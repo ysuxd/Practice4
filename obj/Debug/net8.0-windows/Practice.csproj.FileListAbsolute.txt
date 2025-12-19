@@ -47,3 +47,5 @@ C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debu
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\DishWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderDetailsWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderDetailsWindow.g.cs

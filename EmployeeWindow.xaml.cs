@@ -13,16 +13,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Npgsql;
 
 namespace Practice
 {
-
     public partial class EmployeeWindow : Window
     {
         private DatabaseConnection dbconnection;
-
-
 
         public EmployeeWindow()
         {
@@ -31,6 +27,7 @@ namespace Practice
             dbconnection = new DatabaseConnection();
             LoadData();
         }
+
         public void LoadData()
         {
             using (var connection = dbconnection.GetConnection())
@@ -76,19 +73,19 @@ namespace Practice
             }
         }
 
-
         private void UpdateClient(int employeeid, string firstName, string surname, string lastName)
         {
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                string query = "Update Client set firstname=@firstName, surname=@surname, lastname=@lastName WHERE employeeid=@employeeid";
+                // ИСПРАВЛЕНО: было "Update Client", должно быть "Update Employee"
+                string query = "Update Employee set firstname=@firstName, surname=@surname, lastname=@lastName WHERE employeeid=@employeeid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@firstName", firstName);
                     command.Parameters.AddWithValue("@surname", surname);
                     command.Parameters.AddWithValue("@lastName", lastName);
-                    command.Parameters.AddWithValue("@employeeid", employeeid); // Добавлен этот параметр
+                    command.Parameters.AddWithValue("@employeeid", employeeid);
                     command.ExecuteNonQuery();
                 }
             }
@@ -130,10 +127,12 @@ namespace Practice
             DataRowView selectedRow = (DataRowView)EmployeeDataGrid.SelectedItem;
             if (selectedRow != null)
             {
-                int employeeid = Convert.ToInt32(selectedRow["employeeid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "employeeid"
+                int employeeid = Convert.ToInt32(selectedRow["Номер"]);
                 string firstName = FirstNameTextBox.Text;
                 string surname = SurnameNameTextBox.Text;
                 string lastName = LastNameTextBox.Text;
+
                 if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
                 {
                     UpdateClient(employeeid, firstName, surname, lastName);
@@ -141,12 +140,12 @@ namespace Practice
                 }
                 else
                 {
-                    MessageBox.Show("Пожалуйста,введите корректные данные для обновления");
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
                 }
             }
             else
             {
-                MessageBox.Show("Пожалуйста,выберите строку для обновления");
+                MessageBox.Show("Пожалуйста, выберите строку для обновления");
             }
         }
 
@@ -156,7 +155,8 @@ namespace Practice
 
             if (selectedRow != null)
             {
-                int employeeid = Convert.ToInt32(selectedRow["employeeid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "employeeid"
+                int employeeid = Convert.ToInt32(selectedRow["Номер"]);
                 DeleteClient(employeeid);
                 LoadData();
             }

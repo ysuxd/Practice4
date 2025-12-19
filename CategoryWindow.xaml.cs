@@ -23,8 +23,6 @@ namespace Practice
     {
         private DatabaseConnection dbconnection;
 
-
-
         public CategoryWindow()
         {
             InitializeComponent();
@@ -32,6 +30,7 @@ namespace Practice
             dbconnection = new DatabaseConnection();
             LoadData();
         }
+
         public void LoadData()
         {
             using (var connection = dbconnection.GetConnection())
@@ -48,7 +47,8 @@ namespace Practice
                         // Переименуем заголовки столбцов для красоты
                         if (dataTable.Columns.Contains("categoryid"))
                             dataTable.Columns["categoryid"].ColumnName = "Номер";
-                        if (dataTable.Columns.Contains("Statusname"))
+                        // ИСПРАВЛЕНО: опечатка "Statusname" на "categoryname"
+                        if (dataTable.Columns.Contains("categoryname"))
                             dataTable.Columns["categoryname"].ColumnName = "Название";
 
                         CategoryDataGrid.ItemsSource = dataTable.DefaultView;
@@ -71,17 +71,17 @@ namespace Practice
             }
         }
 
-
         private void UpdateClient(int categoryid, string categoryName)
         {
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                string query = "Update category set categoryname=@categoryName WHERE categoryd=@categoryid";
+                // ИСПРАВЛЕНО: опечатка "categoryd" на "categoryid"
+                string query = "Update category set categoryname=@categoryName WHERE categoryid=@categoryid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@categoryName", categoryName);
-                    command.Parameters.AddWithValue("@categoryid", categoryid); // Добавлен этот параметр
+                    command.Parameters.AddWithValue("@categoryid", categoryid);
                     command.ExecuteNonQuery();
                 }
             }
@@ -121,7 +121,8 @@ namespace Practice
             DataRowView selectedRow = (DataRowView)CategoryDataGrid.SelectedItem;
             if (selectedRow != null)
             {
-                int categoryid = Convert.ToInt32(selectedRow["categoryid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "categoryid"
+                int categoryid = Convert.ToInt32(selectedRow["Номер"]);
                 string categoryName = CategoryNameTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(categoryName))
                 {
@@ -130,12 +131,12 @@ namespace Practice
                 }
                 else
                 {
-                    MessageBox.Show("Пожалуйста,введите корректные данные для обновления");
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
                 }
             }
             else
             {
-                MessageBox.Show("Пожалуйста,выберите строку для обновления");
+                MessageBox.Show("Пожалуйста, выберите строку для обновления");
             }
         }
 
@@ -145,7 +146,8 @@ namespace Practice
 
             if (selectedRow != null)
             {
-                int categoryid = Convert.ToInt32(selectedRow["categoryid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "categoryid"
+                int categoryid = Convert.ToInt32(selectedRow["Номер"]);
                 DeleteClient(categoryid);
                 LoadData();
             }

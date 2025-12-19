@@ -75,5 +75,11 @@ namespace Practice
             OrderWindow orderWindow = new OrderWindow();
             orderWindow.Show();
         }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            OrderDetailsWindow orderDetailsWindow = new OrderDetailsWindow();
+            orderDetailsWindow.Show();
+        }
     }
 }

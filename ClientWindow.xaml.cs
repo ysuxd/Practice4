@@ -16,12 +16,9 @@ using Npgsql;
 
 namespace Practice
 {
-    
     public partial class ClientWindow : Window
     {
         private DatabaseConnection dbconnection;
-
-        
 
         public ClientWindow()
         {
@@ -30,6 +27,7 @@ namespace Practice
             dbconnection = new DatabaseConnection();
             LoadData();
         }
+
         public void LoadData()
         {
             using (var connection = dbconnection.GetConnection())
@@ -65,7 +63,7 @@ namespace Practice
             {
                 connection.Open();
                 string query = "Insert Into Client (firstName,surname,lastName) Values (@firstName, @surname, @lastName)";
-                using (var command = new NpgsqlCommand(query,connection))
+                using (var command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@firstName", firstName);
                     command.Parameters.AddWithValue("@surname", surname);
@@ -74,7 +72,6 @@ namespace Practice
                 }
             }
         }
-
 
         private void UpdateClient(int clientid, string firstName, string surname, string lastName)
         {
@@ -87,7 +84,7 @@ namespace Practice
                     command.Parameters.AddWithValue("@firstName", firstName);
                     command.Parameters.AddWithValue("@surname", surname);
                     command.Parameters.AddWithValue("@lastName", lastName);
-                    command.Parameters.AddWithValue("@clientid", clientid); // Добавлен этот параметр
+                    command.Parameters.AddWithValue("@clientid", clientid);
                     command.ExecuteNonQuery();
                 }
             }
@@ -101,7 +98,7 @@ namespace Practice
                 string query = "Delete from Client WHERE clientid=@clientid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@clientid",clientid);
+                    command.Parameters.AddWithValue("@clientid", clientid);
                     command.ExecuteNonQuery();
                 }
             }
@@ -115,9 +112,9 @@ namespace Practice
 
             if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
             {
-                AddClient(firstName,surname,lastName);
+                AddClient(firstName, surname, lastName);
                 LoadData();
-            } 
+            }
             else
             {
                 MessageBox.Show("Пожалуйста, введите корректные данные.");
@@ -127,25 +124,27 @@ namespace Practice
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
             DataRowView selectedRow = (DataRowView)ClientDataGrid.SelectedItem;
-            if (selectedRow != null) 
+            if (selectedRow != null)
             {
-                int clientid = Convert.ToInt32(selectedRow["clientid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "clientid"
+                int clientid = Convert.ToInt32(selectedRow["Номер"]);
                 string firstName = FirstNameTextBox.Text;
                 string surname = SurnameNameTextBox.Text;
                 string lastName = LastNameTextBox.Text;
+
                 if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
                 {
-                    UpdateClient(clientid,firstName, surname, lastName);
+                    UpdateClient(clientid, firstName, surname, lastName);
                     LoadData();
                 }
                 else
                 {
-                    MessageBox.Show("Пожалуйста,введите корректные данные для обновления");
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
                 }
             }
             else
             {
-                MessageBox.Show("Пожалуйста,выберите строку для обновления");
+                MessageBox.Show("Пожалуйста, выберите строку для обновления");
             }
         }
 
@@ -155,7 +154,8 @@ namespace Practice
 
             if (selectedRow != null)
             {
-                int clientid = Convert.ToInt32(selectedRow["clientid"]);
+                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "clientid"
+                int clientid = Convert.ToInt32(selectedRow["Номер"]);
                 DeleteClient(clientid);
                 LoadData();
             }
