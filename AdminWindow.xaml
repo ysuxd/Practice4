@@ -5,16 +5,454 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Practice"
         mc:Ignorable="d"
-        Title="AdminWindow" Height="450" Width="800">
-    <Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="265,271,0,0" VerticalAlignment="Top" Height="77" Width="120" Click="Button_Click"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="465,304,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="105,274,0,0" VerticalAlignment="Top" Click="Button_Click_2" Height="80" Width="115"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="555,304,0,0" VerticalAlignment="Top" Click="Button_Click_3"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="650,304,0,0" VerticalAlignment="Top" Click="Button_Click_4"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="220,139,0,0" VerticalAlignment="Top" Height="65" Width="90" Click="Button_Click_5"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="530,99,0,0" VerticalAlignment="Top" Height="118" Width="120" Click="Button_Click_6"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="60,36,0,0" VerticalAlignment="Top" Height="136" Width="115" Click="Button_Click_7"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="540,349,0,0" VerticalAlignment="Top" Height="50" Width="185" Click="Button_Click_8"/>
+        Title="Панель администратора" 
+        Height="650" 
+        Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#f8f9fa">
+
+    <Window.Resources>
+        <!-- Кисти цветов колледжа -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0055a5"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#003366"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#ff6600"/>
+        <SolidColorBrush x:Key="LightBrush" Color="#e6f0ff"/>
+        <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+        <SolidColorBrush x:Key="GrayLightBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextDarkBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4caf50"/>
+
+        <!-- Стиль для кнопок -->
+        <Style x:Key="CollegeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter Grid.Column="1" 
+                                                  Content="{TemplateBinding Content}"
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"
+                                                  Margin="5,0,0,0"/>
+
+                                <!-- Иконка -->
+                                <TextBlock x:Name="icon" 
+                                           Grid.Column="0"
+                                           Text="{TemplateBinding Tag}"
+                                           FontSize="18"
+                                           VerticalAlignment="Center"
+                                           Foreground="White"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="10" Opacity="0.3"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#002244"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для заголовков секций -->
+        <Style x:Key="SectionHeaderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource LightBrush}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderBrush" Value="#d1e0ff"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Стиль для текста заголовков -->
+        <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Градиент для фона -->
+        <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#f0f5ff" Offset="0"/>
+            <GradientStop Color="#ffffff" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Кисть для оранжевого текста -->
+        <SolidColorBrush x:Key="OrangeTextBrush" Color="#e65100"/>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BackgroundGradient}">
+        <!-- Основной контейнер -->
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Шапка с логотипом колледжа -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource PrimaryBrush}"
+                    CornerRadius="10"
+                    Margin="0,0,0,20"
+                    Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Логотип -->
+                    <Border Grid.Column="0" 
+                            Background="White" 
+                            Width="60" 
+                            Height="60"
+                            CornerRadius="30"
+                            Padding="10">
+                        <Viewbox>
+                            <TextBlock Text="🎓" 
+                                       FontSize="30"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Название -->
+                    <StackPanel Grid.Column="1" 
+                                Margin="20,0,0,0"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Касимовский нефтегазовый колледж" 
+                                   Foreground="White"
+                                   FontSize="22"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="Столовая - Панель администратора" 
+                                   Foreground="#ccd9ff"
+                                   FontSize="16"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Статус -->
+                    <Border Grid.Column="2" 
+                            Background="#002244"
+                            CornerRadius="15"
+                            Padding="10,5"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" 
+                                     Fill="{StaticResource SuccessBrush}" 
+                                     Margin="0,0,5,0"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock Text="Система активна" 
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Основное содержимое -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Колонка 1: Управление питанием -->
+                <Border Grid.Column="0" 
+                        Margin="0,0,10,0"
+                        Background="White"
+                        CornerRadius="8"
+                        BorderBrush="{StaticResource GrayLightBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Заголовок секции -->
+                        <Border Grid.Row="0" Style="{StaticResource SectionHeaderStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🍽️" FontSize="20" Margin="0,0,10,0" Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="Управление питанием" Style="{StaticResource HeaderTextStyle}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки -->
+                        <StackPanel Grid.Row="1" 
+                                    Margin="15"
+                                    VerticalAlignment="Top">
+
+                            <Button Content="Меню столовой" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📋"
+                                    Height="55"
+                                    Margin="0,0,0,10"
+                                    Click="DishButton_Click"/>
+
+                            <Button Content="Категории блюд" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📂"
+                                    Height="50"
+                                    Margin="0,0,0,10"
+                                    Click="CategoryButton_Click"/>
+
+                            <Button Content="Статусы заказов" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="✅"
+                                    Height="50"
+                                    Margin="0,0,0,10"
+                                    Click="StatusButton_Click"/>
+
+                            <Button Content="Детали заказов" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📝"
+                                    Height="50"
+                                    Click="OrderDetailsButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Колонка 2: Заказы и клиенты -->
+                <Border Grid.Column="1" 
+                        Margin="5,0,5,0"
+                        Background="White"
+                        CornerRadius="8"
+                        BorderBrush="{StaticResource GrayLightBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Заголовок секции -->
+                        <Border Grid.Row="0" Style="{StaticResource SectionHeaderStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="20" Margin="0,0,10,0" Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="Заказы и клиенты" Style="{StaticResource HeaderTextStyle}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки -->
+                        <StackPanel Grid.Row="1" 
+                                    Margin="15"
+                                    VerticalAlignment="Top">
+
+                            <Button Content="Заказы студентов" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📦"
+                                    Height="65"
+                                    Margin="0,0,0,15"
+                                    Click="OrderButton_Click"/>
+
+                            <Button Content="Студенты (клиенты)" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="👥"
+                                    Height="55"
+                                    Margin="0,0,0,10"
+                                    Click="ClientButton_Click"/>
+
+                            <Button Content="Сотрудники столовой" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="👨‍🍳"
+                                    Height="55"
+                                    Margin="0,0,0,15"
+                                    Click="EmployeeButton_Click"/>
+
+                            <!-- Статистика -->
+                            <Border Background="{StaticResource LightBrush}"
+                                    CornerRadius="6"
+                                    Padding="10"
+                                    Margin="0,10,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="📈 Сегодня" 
+                                               Foreground="{StaticResource SecondaryBrush}"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,5"/>
+                                    <TextBlock Text="Заказов: 127" 
+                                               Foreground="{StaticResource TextDarkBrush}"
+                                               FontSize="13"/>
+                                    <TextBlock Text="Студентов: 84" 
+                                               Foreground="{StaticResource TextDarkBrush}"
+                                               FontSize="13"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Колонка 3: Управление доступом -->
+                <Border Grid.Column="2" 
+                        Margin="10,0,0,0"
+                        Background="White"
+                        CornerRadius="8"
+                        BorderBrush="{StaticResource GrayLightBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Заголовок секции -->
+                        <Border Grid.Row="0" Style="{StaticResource SectionHeaderStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔐" FontSize="20" Margin="0,0,10,0" Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="Управление доступом" Style="{StaticResource HeaderTextStyle}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки -->
+                        <StackPanel Grid.Row="1" 
+                                    Margin="15"
+                                    VerticalAlignment="Top">
+
+                            <Button Content="Пользователи системы" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="👤"
+                                    Height="60"
+                                    Margin="0,0,0,10"
+                                    Click="UserButton_Click"/>
+
+                            <Button Content="Роли доступа" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="🎭"
+                                    Height="55"
+                                    Margin="0,0,0,15"
+                                    Click="RolesButton_Click"/>
+
+                            <!-- Информация о системе -->
+                            <Border Grid.Row="2" 
+                                    Background="#fff8e1"
+                                    CornerRadius="6"
+                                    Padding="12"
+                                    Margin="0,20,0,0"
+                                    BorderBrush="#ffe082"
+                                    BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="ℹ️ Информация" 
+                                               Foreground="{StaticResource OrangeTextBrush}"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,5"/>
+                                    <TextBlock Text="• Версия: 2.1 (2024)" 
+                                               Foreground="{StaticResource TextDarkBrush}"
+                                               FontSize="12"/>
+                                    <TextBlock Text="• Администратор: Иванов А.С." 
+                                               Foreground="{StaticResource TextDarkBrush}"
+                                               FontSize="12"/>
+                                    <TextBlock Text="• Столовая №1, корпус А" 
+                                               Foreground="{StaticResource TextDarkBrush}"
+                                               FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Нижняя панель -->
+            <Border Grid.Row="2" 
+                    Background="White"
+                    CornerRadius="8"
+                    Margin="0,20,0,0"
+                    BorderBrush="{StaticResource GrayLightBrush}"
+                    BorderThickness="1">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" 
+                                VerticalAlignment="Center">
+                        <Ellipse Width="12" Height="12" 
+                                 Fill="{StaticResource SuccessBrush}" 
+                                 Margin="0,0,8,0"/>
+                        <TextBlock Text="Столовая Касимовского нефтегазового колледжа" 
+                                   Foreground="{StaticResource SecondaryBrush}"
+                                   FontSize="14"/>
+                        <TextBlock Text=" | " 
+                                   Foreground="#999"
+                                   Margin="5,0"/>
+                        <TextBlock Text="Режим: Административный" 
+                                   Foreground="#666"
+                                   FontSize="13"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="🕐 " 
+                                   Foreground="#666"
+                                   Margin="0,0,5,0"/>
+                        <TextBlock Text="12:45" 
+                                   Foreground="{StaticResource PrimaryBrush}"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text=" | 20.12.2024" 
+                                   Foreground="#666"
+                                   Margin="5,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Декоративные элементы -->
+        <Border HorizontalAlignment="Right" 
+                VerticalAlignment="Top"
+                Margin="30"
+                Width="100" 
+                Height="100"
+                Opacity="0.1">
+            <Border.Background>
+                <DrawingBrush TileMode="Tile" Viewport="0,0,50,50" ViewportUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <EllipseGeometry Center="25,25" RadiusX="15" RadiusY="15"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <SolidColorBrush Color="#0055a5"/>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Border.Background>
+        </Border>
     </Grid>
 </Window>

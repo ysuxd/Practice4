@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Работы студентов\4 Курс\practice\project\Practice\App.xaml
-131134986333
+14203881472
 
-161439822250
+18311503931
 201-1662454254
-AdminWindow.xaml;CategoryWindow.xaml;ClientIntefaceWindow.xaml;ClientWindow.xaml;DishWindow.xaml;EmployeeInterfaceWindow.xaml;EmployeeWindow.xaml;MainWindow.xaml;OrderDetailsWindow.xaml;OrderWindow.xaml;RolesWindow.xaml;StatusWindow.xaml;UserWindow.xaml;
+AdminWindow.xaml;CategoryWindow.xaml;ClientIntefaceWindow.xaml;ClientWindow.xaml;DishWindow.xaml;EmployeeInterfaceWindow.xaml;EmployeeWindow.xaml;MainWindow.xaml;OrderDetailsWindow.xaml;OrderWindow.xaml;RegistrationWindow.xaml;RolesWindow.xaml;StatusWindow.xaml;UserWindow.xaml;
 
 False
 

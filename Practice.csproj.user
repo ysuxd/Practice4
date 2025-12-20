@@ -34,6 +34,9 @@
     <Compile Update="OrderWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="RegistrationWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="RolesWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -73,6 +76,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="OrderWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="RegistrationWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="RolesWindow.xaml">

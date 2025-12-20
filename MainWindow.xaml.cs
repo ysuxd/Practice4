@@ -171,6 +171,21 @@ namespace Practice
             Application.Current.Shutdown();
         }
 
+
+        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        {
+            RegistrationWindow registrationWindow = new RegistrationWindow();
+            registrationWindow.Owner = this;
+
+            registrationWindow.Closed += (s, args) =>
+            {
+                this.Show();
+                ClearFields();
+            };
+
+            this.Hide();
+            registrationWindow.Show();
+        }
         // Обработка нажатия Enter для удобства
         private void LoginTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {

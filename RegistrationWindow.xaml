@@ -1,0 +1,156 @@
+﻿<Window x:Class="Practice.RegistrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Регистрация клиента" Height="450" Width="400"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Margin" Value="10,5,20,5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="PasswordBox">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Margin" Value="10,5,20,5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="10,5,10,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Заголовок -->
+        <Label Content="Регистрация нового клиента" 
+               Grid.Row="0" 
+               Grid.ColumnSpan="2"
+               HorizontalAlignment="Center"
+               FontSize="18"
+               FontWeight="Bold"
+               Margin="0,20,0,20"/>
+
+        <!-- Фамилия -->
+        <Label Content="Фамилия:" 
+               Grid.Row="1" 
+               Grid.Column="0"/>
+
+        <TextBox x:Name="LastNameTextBox" 
+                 Grid.Row="1" 
+                 Grid.Column="1"/>
+
+        <!-- Имя -->
+        <Label Content="Имя:" 
+               Grid.Row="2" 
+               Grid.Column="0"/>
+
+        <TextBox x:Name="FirstNameTextBox" 
+                 Grid.Row="2" 
+                 Grid.Column="1"/>
+
+        <!-- Отчество -->
+        <Label Content="Отчество:" 
+               Grid.Row="3" 
+               Grid.Column="0"/>
+
+        <TextBox x:Name="SurnameTextBox" 
+                 Grid.Row="3" 
+                 Grid.Column="1"/>
+
+        <!-- Логин -->
+        <Label Content="Логин:" 
+               Grid.Row="4" 
+               Grid.Column="0"/>
+
+        <TextBox x:Name="LoginTextBox" 
+                 Grid.Row="4" 
+                 Grid.Column="1"/>
+
+        <!-- Пароль -->
+        <Label Content="Пароль:" 
+               Grid.Row="5" 
+               Grid.Column="0"/>
+
+        <PasswordBox x:Name="PasswordBox" 
+                     Grid.Row="5" 
+                     Grid.Column="1"/>
+
+        <!-- Подтверждение пароля -->
+        <Label Content="Повторите пароль:" 
+               Grid.Row="6" 
+               Grid.Column="0"/>
+
+        <PasswordBox x:Name="ConfirmPasswordBox" 
+                     Grid.Row="6" 
+                     Grid.Column="1"/>
+
+        <!-- Сообщение об ошибке -->
+        <TextBlock x:Name="ErrorMessageTextBlock"
+                   Grid.Row="7"
+                   Grid.ColumnSpan="2"
+                   Foreground="Red"
+                   HorizontalAlignment="Center"
+                   Margin="10,10,10,10"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"/>
+
+        <!-- Сообщение об успехе -->
+        <TextBlock x:Name="SuccessMessageTextBlock"
+                   Grid.Row="8"
+                   Grid.ColumnSpan="2"
+                   Foreground="Green"
+                   HorizontalAlignment="Center"
+                   Margin="10,10,10,10"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"/>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="10" 
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,20">
+
+            <Button x:Name="RegisterButton" 
+                    Content="Зарегистрироваться"
+                    Click="RegisterButton_Click"/>
+
+            <Button x:Name="CancelButton" 
+                    Content="Отмена"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
