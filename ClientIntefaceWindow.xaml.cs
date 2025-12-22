@@ -22,9 +22,21 @@ namespace Practice
         private int clientId;
         private string clientName;
 
-        public ClientIntefaceWindow()
+        public ClientIntefaceWindow(int userId, string username, string role)
         {
             InitializeComponent();
+            Console.WriteLine("Вызван конструктор С параметрами");
+
+            // Устанавливаем значения
+            CurrentUserId = userId;
+            CurrentUsername = username;
+            CurrentRole = role;
+
+            Console.WriteLine($"Установлено:");
+            Console.WriteLine($"  CurrentUserId = {CurrentUserId}");
+            Console.WriteLine($"  CurrentUsername = {CurrentUsername}");
+            Console.WriteLine($"  CurrentRole = {CurrentRole}");
+
             dbconnection = new DatabaseConnection();
             dishes = new ObservableCollection<Dish>();
             cartItems = new ObservableCollection<CartItem>();
@@ -38,109 +50,165 @@ namespace Practice
         {
             try
             {
-                Console.WriteLine($"DEBUG: Загрузка информации для userid={CurrentUserId}, login={CurrentUsername}");
+                Console.WriteLine($"=== НАЧАЛО LoadUserInfo() ===");
+                Console.WriteLine($"Текущий UserId: {CurrentUserId}");
+                Console.WriteLine($"Текущий Username: {CurrentUsername}");
+                Console.WriteLine($"Текущая Role: {CurrentRole}");
 
-                // Временное приветствие
+                // Устанавливаем временные значения
                 WelcomeText.Text = $"Здравствуйте, {CurrentUsername}!";
                 UserInfoText.Text = $"Касимовский нефтегазовый колледж • {CurrentRole}";
-
-                // Сначала пытаемся получить информацию о клиенте
-                clientId = 0;
-                clientName = "";
 
                 using (var connection = dbconnection.GetConnection())
                 {
                     connection.Open();
 
-                    // Запрос 1: Проверяем, есть ли клиент с таким userid
-                    string query = @"
-                SELECT 
-                    c.clientid,
-                    c.firstname,
-                    c.lastname,
-                    c.surname,
-                    u.login
-                FROM users u
-                LEFT JOIN client c ON u.userid = c.userid
-                WHERE u.userid = @userid";
+                    // ШАГ 1: Проверим, что пользователь действительно существует
+                    Console.WriteLine($"ШАГ 1: Проверяем пользователя с userid={CurrentUserId}");
+                    string checkUserQuery = "SELECT userid, login FROM users WHERE userid = @userid";
 
-                    using (var command = new NpgsqlCommand(query, connection))
+                    using (var checkCmd = new NpgsqlCommand(checkUserQuery, connection))
                     {
-                        command.Parameters.AddWithValue("@userid", CurrentUserId);
-
-                        using (var reader = command.ExecuteReader())
+                        checkCmd.Parameters.AddWithValue("@userid", CurrentUserId);
+                        using (var reader = checkCmd.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                // Проверяем, есть ли clientid
-                                if (!reader.IsDBNull(0))
+                                int dbUserId = reader.GetInt32(0);
+                                string dbLogin = reader.GetString(1);
+                                Console.WriteLine($"✓ Пользователь найден в БД: ID={dbUserId}, Login={dbLogin}");
+
+                                if (dbUserId != CurrentUserId)
                                 {
-                                    clientId = reader.GetInt32(0);
-
-                                    // Собираем ФИО
-                                    string lastName = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim();
-                                    string firstName = reader.IsDBNull(1) ? "" : reader.GetString(1).Trim();
-                                    string surname = reader.IsDBNull(3) ? "" : reader.GetString(3).Trim();
-
-                                    // Формируем полное имя
-                                    List<string> nameParts = new List<string>();
-                                    if (!string.IsNullOrEmpty(lastName)) nameParts.Add(lastName);
-                                    if (!string.IsNullOrEmpty(firstName)) nameParts.Add(firstName);
-                                    if (!string.IsNullOrEmpty(surname)) nameParts.Add(surname);
-
-                                    if (nameParts.Count > 0)
-                                    {
-                                        clientName = string.Join(" ", nameParts);
-                                        WelcomeText.Text = $"Здравствуйте, {clientName}!";
-                                        UserInfoText.Text = $"{clientName} • {CurrentRole}";
-                                    }
-                                    else
-                                    {
-                                        // Если ФИО пустые, используем логин
-                                        clientName = reader.GetString(4); // login
-                                        WelcomeText.Text = $"Здравствуйте, {clientName}!";
-                                    }
-
-                                    Console.WriteLine($"DEBUG: Клиент найден - ID={clientId}, Name={clientName}");
-                                }
-                                else
-                                {
-                                    // Клиент не найден, но пользователь есть
-                                    Console.WriteLine($"DEBUG: Клиент не найден для userid={CurrentUserId}");
-
-                                    // Показываем сообщение об ошибке
-                                    MessageBox.Show("Не удалось определить информацию о клиенте.\nОбратитесь к администратору.",
-                                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                                    // Используем логин как имя
-                                    clientName = CurrentUsername;
-                                    WelcomeText.Text = $"Здравствуйте, {CurrentUsername}!";
+                                    Console.WriteLine($"⚠ ВНИМАНИЕ: CurrentUserId ({CurrentUserId}) не совпадает с ID из БД ({dbUserId})!");
                                 }
                             }
                             else
                             {
-                                // Пользователь не найден - это странно
-                                Console.WriteLine($"DEBUG: Пользователь не найден в базе - userid={CurrentUserId}");
-                                clientName = CurrentUsername;
+                                Console.WriteLine($"✗ ОШИБКА: Пользователь с ID={CurrentUserId} не найден в таблице users!");
+                                MessageBox.Show($"Пользователь с ID={CurrentUserId} не найден в системе. \nПопробуйте выйти и зайти снова.",
+                                              "Ошибка авторизации", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
+                        }
+                    }
+
+                    // ШАГ 2: Ищем клиента
+                    Console.WriteLine($"ШАГ 2: Ищем клиента с userid={CurrentUserId}");
+                    string findClientQuery = @"
+                SELECT 
+                    clientid,
+                    firstname,
+                    lastname,
+                    surname
+                FROM client 
+                WHERE userid = @userid";
+
+                    using (var clientCmd = new NpgsqlCommand(findClientQuery, connection))
+                    {
+                        clientCmd.Parameters.AddWithValue("@userid", CurrentUserId);
+                        using (var reader = clientCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                clientId = reader.GetInt32(0);
+                                Console.WriteLine($"✓ Клиент найден: clientid={clientId}");
+
+                                // Собираем ФИО
+                                string firstName = reader.IsDBNull(1) ? "" : reader.GetString(1).Trim();
+                                string lastName = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim();
+                                string surname = reader.IsDBNull(3) ? "" : reader.GetString(3).Trim();
+
+                                Console.WriteLine($"ФИО из БД: LastName='{lastName}', FirstName='{firstName}', Surname='{surname}'");
+
+                                // Формируем полное имя
+                                List<string> nameParts = new List<string>();
+                                if (!string.IsNullOrEmpty(lastName)) nameParts.Add(lastName);
+                                if (!string.IsNullOrEmpty(firstName)) nameParts.Add(firstName);
+                                if (!string.IsNullOrEmpty(surname)) nameParts.Add(surname);
+
+                                if (nameParts.Count > 0)
+                                {
+                                    clientName = string.Join(" ", nameParts);
+                                    WelcomeText.Text = $"Здравствуйте, {clientName}!";
+                                    UserInfoText.Text = $"{clientName} • {CurrentRole}";
+                                    Console.WriteLine($"✓ Имя клиента установлено: {clientName}");
+                                }
+                                else
+                                {
+                                    clientName = CurrentUsername;
+                                    Console.WriteLine($"⚠ ФИО пустые, используем логин: {clientName}");
+                                }
+                            }
+                            else
+                            {
+                                // Клиент не найден
+                                Console.WriteLine($"✗ Клиент не найден для userid={CurrentUserId}");
+
+                                // Проверяем, есть ли вообще запись в client с таким userid
+                                string checkClientExists = "SELECT COUNT(*) FROM client WHERE userid = @userid";
+                                using (var countCmd = new NpgsqlCommand(checkClientExists, connection))
+                                {
+                                    countCmd.Parameters.AddWithValue("@userid", CurrentUserId);
+                                    int count = Convert.ToInt32(countCmd.ExecuteScalar());
+                                    Console.WriteLine($"Всего записей в client с userid={CurrentUserId}: {count}");
+                                }
+
+                                // Если пользователь есть, но клиента нет - создаем запись
+                                Console.WriteLine($"Создаем запись клиента для userid={CurrentUserId}");
+                                string createClientQuery = @"
+                            INSERT INTO client (firstname, lastname, surname, userid) 
+                            VALUES (@firstname, @lastname, @surname, @userid)
+                            RETURNING clientid";
+
+                                using (var createCmd = new NpgsqlCommand(createClientQuery, connection))
+                                {
+                                    createCmd.Parameters.AddWithValue("@firstname", CurrentUsername);
+                                    createCmd.Parameters.AddWithValue("@lastname", "");
+                                    createCmd.Parameters.AddWithValue("@surname", "");
+                                    createCmd.Parameters.AddWithValue("@userid", CurrentUserId);
+
+                                    clientId = Convert.ToInt32(createCmd.ExecuteScalar());
+                                    clientName = CurrentUsername;
+
+                                    Console.WriteLine($"✓ Создана запись клиента: clientid={clientId}");
+                                    MessageBox.Show($"Создана новая запись клиента с ID {clientId}",
+                                                  "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                                }
                             }
                         }
                     }
                 }
+
+                Console.WriteLine($"=== КОНЕЦ LoadUserInfo() ===");
+                Console.WriteLine($"Итог: clientId={clientId}, clientName={clientName}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке информации пользователя: {ex.Message}\n\nПроверьте соединение с базой данных и правильность запросов.",
-                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                Console.WriteLine($"=== КРИТИЧЕСКАЯ ОШИБКА ===");
+                Console.WriteLine($"Тип: {ex.GetType().Name}");
+                Console.WriteLine($"Сообщение: {ex.Message}");
+                Console.WriteLine($"Стек вызова: {ex.StackTrace}");
 
-                // Устанавливаем значения по умолчанию
-                clientId = 0;
+                if (ex is NpgsqlException npgEx)
+                {
+                    Console.WriteLine($"Код SQL ошибки: {npgEx.SqlState}");
+                    Console.WriteLine($"Позиция ошибки: {npgEx.Data["Position"]}");
+                }
+
+                MessageBox.Show($"Критическая ошибка: {ex.Message}\n\n" +
+                              $"Проверьте подключение к базе данных и правильность SQL запросов.",
+                              "Системная ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // Устанавливаем безопасные значения
+                clientId = CurrentUserId; // Используем userid как clientid
                 clientName = CurrentUsername;
                 WelcomeText.Text = $"Здравствуйте, {CurrentUsername}!";
                 UserInfoText.Text = $"Касимовский нефтегазовый колледж • {CurrentRole}";
             }
         }
-           
-        
+
+
 
         private void LoadDishes()
         {
@@ -321,6 +389,8 @@ namespace Practice
         }
 
         // Оформление заказа
+        // Оформление заказа
+        // Оформление заказа
         private void PlaceOrderButton_Click(object sender, RoutedEventArgs e)
         {
             if (cartItems.Count == 0)
@@ -347,7 +417,7 @@ namespace Practice
                                    $"Доступно: {dish?.AvailableQuantity ?? 0} шт.\n" +
                                    "Пожалуйста, обновите корзину.",
                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    LoadDishes(); // Обновляем информацию о доступности
+                    LoadDishes();
                     UpdateCartDisplay();
                     return;
                 }
@@ -359,105 +429,185 @@ namespace Practice
                 {
                     connection.Open();
 
+                    // СНАЧАЛА получим employeeid
+                    int employeeId = 1; // значение по умолчанию
+
+                    try
+                    {
+                        // Проверяем, есть ли сотрудник с ID=1
+                        string checkEmpQuery = "SELECT COUNT(*) FROM employee WHERE employeeid = 1";
+                        using (var checkCmd = new NpgsqlCommand(checkEmpQuery, connection))
+                        {
+                            int empCount = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                            if (empCount == 0)
+                            {
+                                // Ищем любого сотрудника
+                                string findEmpQuery = "SELECT employeeid FROM employee LIMIT 1";
+                                using (var findCmd = new NpgsqlCommand(findEmpQuery, connection))
+                                {
+                                    var result = findCmd.ExecuteScalar();
+                                    if (result != null && result != DBNull.Value)
+                                    {
+                                        employeeId = Convert.ToInt32(result);
+                                    }
+                                    else
+                                    {
+                                        // Если вообще нет сотрудников, создаем одного
+                                        string createEmpQuery = @"
+                                    INSERT INTO employee (firstname, lastname) 
+                                    VALUES ('Системный', 'Оператор') 
+                                    RETURNING employeeid";
+                                        using (var createCmd = new NpgsqlCommand(createEmpQuery, connection))
+                                        {
+                                            employeeId = Convert.ToInt32(createCmd.ExecuteScalar());
+                                            Console.WriteLine($"Создан системный оператор с ID={employeeId}");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Console.WriteLine($"Будет использован employeeid: {employeeId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при получении employeeid: {ex.Message}");
+                        employeeId = 1; // используем значение по умолчанию
+                    }
+
                     // Начинаем транзакцию
                     using (var transaction = connection.BeginTransaction())
                     {
                         try
                         {
-                            // 1. Создаем новый заказ
+                            // 1. Создаем заказ - ВАЖНО: добавляем statusid = 4
                             int orderId;
-                            using (var command = new NpgsqlCommand(
-                                @"INSERT INTO orders (clientid, employeeid, statusid, orderdate, ordertime) 
-                                  VALUES (@clientid, 1, 1, @orderdate, @ordertime) 
-                                  RETURNING orderid", connection))
+                            string orderQuery = @"
+                        INSERT INTO orders (clientid, employeeid, statusid, orderdate, ordertime) 
+                        VALUES (@clientid, @employeeid, @statusid, @orderdate, @ordertime) 
+                        RETURNING orderid";
+
+                            using (var command = new NpgsqlCommand(orderQuery, connection))
                             {
                                 command.Transaction = transaction;
                                 command.Parameters.AddWithValue("@clientid", clientId);
+                                command.Parameters.AddWithValue("@employeeid", employeeId);
+                                command.Parameters.AddWithValue("@statusid", 4); // статус "В процессе"
                                 command.Parameters.AddWithValue("@orderdate", DateTime.Today);
                                 command.Parameters.AddWithValue("@ordertime", DateTime.Now.TimeOfDay);
 
                                 orderId = Convert.ToInt32(command.ExecuteScalar());
+                                Console.WriteLine($"Заказ создан: ID={orderId}, clientId={clientId}, employeeId={employeeId}, statusId=4");
                             }
 
-                            // 2. Добавляем детали заказа для каждого товара в корзине
-                            // и одновременно уменьшаем количество доступных блюд
+                            // 2. Добавляем детали заказа
                             foreach (var item in cartItems)
                             {
                                 // Получаем categoryid для блюда
-                                int categoryId;
-                                using (var command = new NpgsqlCommand(
-                                    "SELECT categoryid FROM dish WHERE dishid = @dishid", connection))
+                                int categoryId = 1;
+                                try
                                 {
-                                    command.Transaction = transaction;
-                                    command.Parameters.AddWithValue("@dishid", item.Id);
-                                    categoryId = Convert.ToInt32(command.ExecuteScalar());
+                                    using (var command = new NpgsqlCommand(
+                                        "SELECT categoryid FROM dish WHERE dishid = @dishid", connection))
+                                    {
+                                        command.Transaction = transaction;
+                                        command.Parameters.AddWithValue("@dishid", item.Id);
+                                        var result = command.ExecuteScalar();
+                                        if (result != null && result != DBNull.Value)
+                                        {
+                                            categoryId = Convert.ToInt32(result);
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    categoryId = 1;
                                 }
 
                                 // Добавляем детали заказа
-                                using (var command = new NpgsqlCommand(
-                                    @"INSERT INTO ordersdetails 
-                                      (dishid, orderid, categoryid, clientid, employeeid, statusid, price, quantity) 
-                                      VALUES (@dishid, @orderid, @categoryid, @clientid, 1, 1, @price, @quantity)",
-                                    connection))
+                                string detailsQuery = @"
+                            INSERT INTO ordersdetails 
+                            (dishid, orderid, categoryid, clientid, employeeid, statusid, price, quantity) 
+                            VALUES (@dishid, @orderid, @categoryid, @clientid, @employeeid,@statusid, @price, @quantity)";
+
+
+                                using (var command = new NpgsqlCommand(detailsQuery, connection))
                                 {
                                     command.Transaction = transaction;
                                     command.Parameters.AddWithValue("@dishid", item.Id);
                                     command.Parameters.AddWithValue("@orderid", orderId);
                                     command.Parameters.AddWithValue("@categoryid", categoryId);
                                     command.Parameters.AddWithValue("@clientid", clientId);
+                                    command.Parameters.AddWithValue("@employeeid", employeeId);
+                                    command.Parameters.AddWithValue("@statusid", 4); 
                                     command.Parameters.AddWithValue("@price", item.Price);
                                     command.Parameters.AddWithValue("@quantity", item.Quantity);
 
                                     command.ExecuteNonQuery();
+                                    Console.WriteLine($"Добавлено блюдо: {item.Name}");
                                 }
 
-                                // Уменьшаем количество блюд на складе
+                                // Уменьшаем количество блюд
                                 using (var command = new NpgsqlCommand(
                                     @"UPDATE dish 
-                                      SET quantity = quantity - @quantity 
-                                      WHERE dishid = @dishid AND quantity >= @quantity",
+                              SET quantity = quantity - @quantity 
+                              WHERE dishid = @dishid",
                                     connection))
                                 {
                                     command.Transaction = transaction;
                                     command.Parameters.AddWithValue("@dishid", item.Id);
                                     command.Parameters.AddWithValue("@quantity", item.Quantity);
-
-                                    int rowsAffected = command.ExecuteNonQuery();
-                                    if (rowsAffected == 0)
-                                    {
-                                        throw new Exception($"Не удалось обновить количество для блюда '{item.Name}'. " +
-                                                          $"Возможно, количество изменилось.");
-                                    }
+                                    command.ExecuteNonQuery();
                                 }
                             }
 
                             // Подтверждаем транзакцию
                             transaction.Commit();
+                            Console.WriteLine($"Транзакция успешно завершена для заказа #{orderId}");
 
                             // Очищаем корзину
                             cartItems.Clear();
 
-                            // Обновляем список блюд (количества изменились)
+                            // Обновляем список блюд
                             LoadDishes();
                             UpdateCartDisplay();
 
-                            MessageBox.Show($"Заказ №{orderId} успешно оформлен!\n" +
-                                          $"Сумма: {TotalAmountText.Text}\n" +
-                                          $"Спасибо за ваш заказ, {clientName}!",
+                            MessageBox.Show($"✅ Заказ №{orderId} успешно оформлен!\n" +
+                                          $"💰 Сумма: {TotalAmountText.Text}\n" +
+                                          $"📊 Статус: В процессе\n" +
+                                          $"🙏 Спасибо за ваш заказ, {clientName}!",
                                           "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         catch (Exception ex)
                         {
-                            transaction.Rollback();
-                            throw new Exception($"Ошибка при создании заказа: {ex.Message}");
+                            try
+                            {
+                                transaction.Rollback();
+                                Console.WriteLine($"Транзакция откатана: {ex.Message}");
+                            }
+                            catch (Exception rollbackEx)
+                            {
+                                Console.WriteLine($"Ошибка при откате транзакции: {rollbackEx.Message}");
+                            }
+
+                            // Проверяем, если это ошибка о NULL в statutapi
+                            if (ex.Message.Contains("statutapi") && ex.Message.Contains("NOT NULL"))
+                            {
+                                throw new Exception($"Ошибка при создании заказа: Не указан статус заказа. Проверьте наличие статуса с ID=4 в таблице status.");
+                            }
+                            else
+                            {
+                                throw new Exception($"Ошибка при создании заказа: {ex.Message}");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при оформлении заказа: {ex.Message}",
-                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                Console.WriteLine($"Общая ошибка оформления: {ex.Message}");
+                MessageBox.Show($"❌ Ошибка при оформлении заказа: {ex.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

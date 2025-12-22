@@ -22,9 +22,12 @@ namespace Practice
         public int CurrentUserId { get; set; }
         public string CurrentUsername { get; set; }
         public string CurrentRole { get; set; }
-        public AdminWindow()
+        public AdminWindow(int userId, string username, string role)
         {
             InitializeComponent();
+            CurrentUserId = userId;
+            CurrentUsername = username;
+            CurrentRole = role;
         }
 
        

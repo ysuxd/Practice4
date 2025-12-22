@@ -33,12 +33,14 @@ namespace Practice
             LoginTextBox.Focus();
         }
 
+        // Альтернативный способ - по имени столбца
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string login = LoginTextBox.Text.Trim();
             string password = PasswordBox.Password;
 
-            // Проверка ввода
+            Console.WriteLine($"Попытка авторизации: login={login}, password={password}");
+
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
             {
                 ShowErrorMessage("Введите логин и пароль");
@@ -47,18 +49,21 @@ namespace Practice
 
             try
             {
-                // Проверка пользователя в базе данных
                 using (var connection = dbConnection.GetConnection())
                 {
                     connection.Open();
+                    Console.WriteLine("Подключение к БД установлено");
 
-                    string query = @"
-                        SELECT u.userid, u.login, u.isblocked, r.rolename 
-                        FROM users u
-                        LEFT JOIN roles r ON u.roleid = r.roleid
-                        WHERE u.login = @login AND u.password = @password";
+                    // УПРОЩЕННЫЙ запрос без JOIN сначала
+                    string simpleQuery = @"
+                SELECT userid, login, isblocked, roleid 
+                FROM users 
+                WHERE login = @login AND password = @password";
 
-                    using (var command = new NpgsqlCommand(query, connection))
+                    Console.WriteLine($"Выполняем запрос: {simpleQuery}");
+                    Console.WriteLine($"Параметры: login={login}, password={password}");
+
+                    using (var command = new NpgsqlCommand(simpleQuery, connection))
                     {
                         command.Parameters.AddWithValue("@login", login);
                         command.Parameters.AddWithValue("@password", password);
@@ -67,92 +72,92 @@ namespace Practice
                         {
                             if (reader.Read())
                             {
-                                // Проверка блокировки
-                                bool isBlocked = reader.GetBoolean(reader.GetOrdinal("isblocked"));
-                                if (isBlocked)
+                                Console.WriteLine("Пользователь найден, читаем данные...");
+
+                                // Читаем по индексам
+                                int userId = reader.GetInt32(0);          // userid
+                                string dbLogin = reader.GetString(1);     // login
+                                bool isBlocked = reader.GetBoolean(2);    // isblocked
+                                int roleId = reader.GetInt32(3);          // roleid
+
+                                Console.WriteLine($"Полученные данные:");
+                                Console.WriteLine($"  userId: {userId}");
+                                Console.WriteLine($"  login: {dbLogin}");
+                                Console.WriteLine($"  isBlocked: {isBlocked}");
+                                Console.WriteLine($"  roleId: {roleId}");
+
+                                if (userId == 0)
                                 {
-                                    ShowErrorMessage("Пользователь заблокирован. Обратитесь к администратору.");
+                                    Console.WriteLine("ВНИМАНИЕ: userId = 0!");
+                                    ShowErrorMessage("Ошибка: ID пользователя = 0");
                                     return;
                                 }
 
-                                // Получаем роль пользователя
-                                string roleName = reader.GetString(reader.GetOrdinal("rolename"));
-                                int userId = reader.GetInt32(reader.GetOrdinal("userid"));
+                                if (isBlocked)
+                                {
+                                    ShowErrorMessage("Пользователь заблокирован");
+                                    return;
+                                }
 
-                                // Запускаем соответствующее окно
-                                OpenUserWindow(userId, roleName, login);
+                                // Теперь получаем название роли
+                                reader.Close(); // Закрываем первый reader
+
+                                string roleQuery = "SELECT rolename FROM roles WHERE roleid = @roleid";
+                                using (var roleCmd = new NpgsqlCommand(roleQuery, connection))
+                                {
+                                    roleCmd.Parameters.AddWithValue("@roleid", roleId);
+                                    string roleName = roleCmd.ExecuteScalar()?.ToString() ?? "Клиент";
+                                    Console.WriteLine($"Роль: {roleName}");
+
+                                    OpenUserWindow(userId, roleName, login);
+                                }
                             }
                             else
                             {
+                                Console.WriteLine("Пользователь не найден");
                                 ShowErrorMessage("Неверный логин или пароль");
                             }
                         }
                     }
                 }
             }
-            catch (NpgsqlException ex)
-            {
-                ShowErrorMessage($"Ошибка базы данных: {ex.Message}");
-            }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 ShowErrorMessage($"Ошибка: {ex.Message}");
             }
         }
-        private void OpenUserWindow(int userId, string roleName,  string login)
+        private void OpenUserWindow(int userId, string roleName, string login)
         {
+            Console.WriteLine($"=== OpenUserWindow ===");
+            Console.WriteLine($"userId={userId}, role={roleName}, login={login}");
+
             this.Hide();
 
             if (roleName == "Администратор")
             {
-                // Создаем AdminWindow без параметров
-                AdminWindow adminWindow = new AdminWindow();
-                // Сохраняем данные пользователя в свойствах окна
-                adminWindow.CurrentUserId = userId;
-                adminWindow.CurrentUsername = login;
-                adminWindow.CurrentRole = roleName;
-
-                adminWindow.Closed += (s, args) =>
-                {
-                    this.Show();
-                    ClearFields();
-                };
+                // Используйте конструктор с параметрами
+                AdminWindow adminWindow = new AdminWindow(userId, login, roleName);
+                adminWindow.Closed += (s, args) => this.Show();
                 adminWindow.Show();
             }
             else if (roleName == "Клиент")
             {
-                // Создаем UserWindow без параметров
-                ClientIntefaceWindow clientIntefaceWindow = new ClientIntefaceWindow();
-                // Сохраняем данные пользователя в свойствах
-                clientIntefaceWindow.CurrentUserId = userId;
-                clientIntefaceWindow.CurrentUsername = login;
-                clientIntefaceWindow.CurrentRole = roleName;
-
-                clientIntefaceWindow.Closed += (s, args) =>
-                {
-                    this.Show();
-                    ClearFields();
-                };
-                clientIntefaceWindow.Show();
+                // Используйте конструктор с параметрами
+                ClientIntefaceWindow clientWindow = new ClientIntefaceWindow(userId, login, roleName);
+                clientWindow.Closed += (s, args) => this.Show();
+                clientWindow.Show();
             }
             else if (roleName == "Сотрудник")
             {
-                // Создаем UserWindow без параметров
-                EmployeeInterfaceWindow employeeInterfaceWindow = new EmployeeInterfaceWindow();
-                // Сохраняем данные пользователя в свойствах
-                employeeInterfaceWindow.CurrentUserId = userId;
-                employeeInterfaceWindow.CurrentUsername = login;
-                employeeInterfaceWindow.CurrentRole = roleName;
-
-                employeeInterfaceWindow.Closed += (s, args) =>
-                {
-                    this.Show();
-                    ClearFields();
-                };
-                employeeInterfaceWindow.Show();
+                // Используйте конструктор с параметрами
+                EmployeeInterfaceWindow employeeWindow = new EmployeeInterfaceWindow(userId, login, roleName);
+                employeeWindow.Closed += (s, args) => this.Show();
+                employeeWindow.Show();
             }
         }
-            private void ShowErrorMessage(string message)
+        private void ShowErrorMessage(string message)
         {
             ErrorMessageTextBlock.Text = message;
             ErrorMessageTextBlock.Visibility = Visibility.Visible;
