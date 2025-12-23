@@ -32,55 +32,80 @@ namespace Practice
         // Загрузка ролей из таблицы Role в ComboBox
         private void LoadRoles()
         {
-            using (var connection = dbconnection.GetConnection())
+            try
             {
-                connection.Open();
-                string query = "SELECT roleid, rolename FROM roles ORDER BY rolename";
-                using (var command = new NpgsqlCommand(query, connection))
+                using (var connection = dbconnection.GetConnection())
                 {
-                    using (var adapter = new NpgsqlDataAdapter(command))
+                    connection.Open();
+                    string query = "SELECT roleid, rolename FROM roles ORDER BY rolename";
+                    using (var command = new NpgsqlCommand(query, connection))
                     {
-                        rolesTable = new DataTable();
-                        adapter.Fill(rolesTable);
-                        RoleComboBox.ItemsSource = rolesTable.DefaultView;
-
-                        if (rolesTable.Rows.Count > 0)
+                        using (var adapter = new NpgsqlDataAdapter(command))
                         {
-                            RoleComboBox.SelectedIndex = 0;
+                            rolesTable = new DataTable();
+                            adapter.Fill(rolesTable);
+                            RoleComboBox.ItemsSource = rolesTable.DefaultView;
+
+                            if (rolesTable.Rows.Count > 0)
+                            {
+                                RoleComboBox.SelectedIndex = 0;
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке ролей: {ex.Message}",
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         // Загрузка данных пользователей с JOIN к таблице Role
         public void LoadData()
         {
-            using (var connection = dbconnection.GetConnection())
+            try
             {
-                connection.Open();
-                string query = @"
-                    SELECT 
-                        u.userid, 
-                        u.login, 
-                        u.password, 
-                        r.rolename,
-                        u.isblocked,
-                        u.roleid
-                    FROM users u
-                    LEFT JOIN roles r ON u.roleid = r.roleid
-                    ORDER BY u.userid";
-
-                using (var command = new NpgsqlCommand(query, connection))
+                using (var connection = dbconnection.GetConnection())
                 {
-                    using (var adapter = new NpgsqlDataAdapter(command))
+                    connection.Open();
+                    string query = @"
+                        SELECT 
+                            u.userid, 
+                            u.login, 
+                            u.password, 
+                            r.rolename,
+                            u.isblocked,
+                            u.roleid
+                        FROM users u
+                        LEFT JOIN roles r ON u.roleid = r.roleid
+                        ORDER BY u.userid";
+
+                    using (var command = new NpgsqlCommand(query, connection))
                     {
-                        DataTable dataTable = new DataTable();
-                        adapter.Fill(dataTable);
-                        UserDataGrid.ItemsSource = dataTable.DefaultView;
+                        using (var adapter = new NpgsqlDataAdapter(command))
+                        {
+                            DataTable dataTable = new DataTable();
+                            adapter.Fill(dataTable);
+                            UserDataGrid.ItemsSource = dataTable.DefaultView;
+
+                            // Обновляем счетчик пользователей
+                            UpdateUsersCount(dataTable.Rows.Count);
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке пользователей: {ex.Message}",
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // Метод для обновления счетчика пользователей
+        private void UpdateUsersCount(int count)
+        {
+            UsersCountText.Text = $"Всего пользователей: {count}";
         }
 
         // Добавление пользователя
@@ -198,6 +223,10 @@ namespace Practice
                     MessageBox.Show($"Ошибка при загрузке данных: {ex.Message}");
                 }
             }
+            else
+            {
+                ClearInputFields();
+            }
         }
 
         // Обработчики кнопок
@@ -226,11 +255,13 @@ namespace Practice
                 AddUser(login, password, roleid, isblocked);
                 LoadData();
                 ClearInputFields();
-                MessageBox.Show("Пользователь успешно добавлен.");
+                MessageBox.Show("Пользователь успешно добавлен.",
+                    "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при добавлении пользователя: {ex.Message}");
+                MessageBox.Show($"Ошибка при добавлении пользователя: {ex.Message}",
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -261,16 +292,19 @@ namespace Practice
                 {
                     UpdateUser(userid, login, password, roleid, isblocked);
                     LoadData();
-                    MessageBox.Show("Данные пользователя успешно обновлены.");
+                    MessageBox.Show("Данные пользователя успешно обновлены.",
+                        "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при обновлении пользователя: {ex.Message}");
+                    MessageBox.Show($"Ошибка при обновлении пользователя: {ex.Message}",
+                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             else
             {
-                MessageBox.Show("Пожалуйста, выберите пользователя для редактирования.");
+                MessageBox.Show("Пожалуйста, выберите пользователя для редактирования.",
+                    "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -283,7 +317,8 @@ namespace Practice
             }
             else
             {
-                MessageBox.Show("Пожалуйста, выберите пользователя для удаления.");
+                MessageBox.Show("Пожалуйста, выберите пользователя для удаления.",
+                    "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

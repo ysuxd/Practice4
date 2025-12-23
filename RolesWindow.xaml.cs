@@ -44,19 +44,24 @@ namespace Practice
                         DataTable dataTable = new DataTable();
                         adapter.Fill(dataTable);
 
-                        // Переименуем заголовки столбцов для красоты
-                        if (dataTable.Columns.Contains("roleid"))
-                            dataTable.Columns["roleid"].ColumnName = "Номер";
-                        if (dataTable.Columns.Contains("rolename"))
-                            dataTable.Columns["rolename"].ColumnName = "Название";
-
+                        // НЕ переименовываем столбцы, чтобы Binding работал правильно!
+                        // Оставляем оригинальные имена: roleid и rolename
                         RolesDataGrid.ItemsSource = dataTable.DefaultView;
+
+                        // Обновляем счетчик ролей
+                        UpdateRolesCount(dataTable.Rows.Count);
                     }
                 }
             }
         }
 
-        private void AddClient(string roleName)
+        // Метод для обновления счетчика ролей
+        private void UpdateRolesCount(int count)
+        {
+            RolesCountText.Text = $"Всего ролей: {count}";
+        }
+
+        private void AddRole(string roleName)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -70,12 +75,11 @@ namespace Practice
             }
         }
 
-        private void UpdateClient(int roleid, string roleName)
+        private void UpdateRole(int roleid, string roleName)
         {
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                // ИСПРАВЛЕНО: было "roleyd", должно быть "roleid"
                 string query = "Update roles set rolename=@roleName WHERE roleid=@roleid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
@@ -86,7 +90,7 @@ namespace Practice
             }
         }
 
-        private void DeleteClient(int roleid)
+        private void DeleteRole(int roleid)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -102,31 +106,40 @@ namespace Practice
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string roleName = RolesNameTextBox.Text;
+            string roleName = RolesNameTextBox.Text.Trim();
 
             if (!string.IsNullOrWhiteSpace(roleName))
             {
-                AddClient(roleName);
+                AddRole(roleName);
                 LoadData();
+                RolesNameTextBox.Text = string.Empty; // Очищаем поле после добавления
             }
             else
             {
-                MessageBox.Show("Пожалуйста, введите корректные данные.");
+                MessageBox.Show("Пожалуйста, введите название роли.");
             }
         }
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)RolesDataGrid.SelectedItem;
+            DataRowView selectedRow = RolesDataGrid.SelectedItem as DataRowView;
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "roleid"
-                int roleid = Convert.ToInt32(selectedRow["Номер"]);
-                string roleName = RolesNameTextBox.Text;
+                // Используем оригинальное имя столбца
+                int roleid = Convert.ToInt32(selectedRow["roleid"]);
+                string roleName = RolesNameTextBox.Text.Trim();
+
                 if (!string.IsNullOrWhiteSpace(roleName))
                 {
-                    UpdateClient(roleid, roleName);
-                    LoadData();
+                    var result = MessageBox.Show($"Вы уверены, что хотите обновить роль?",
+                        "Подтверждение обновления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        UpdateRole(roleid, roleName);
+                        LoadData();
+                        RolesNameTextBox.Text = string.Empty; // Очищаем поле после обновления
+                    }
                 }
                 else
                 {
@@ -141,18 +154,44 @@ namespace Practice
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)RolesDataGrid.SelectedItem;
+            DataRowView selectedRow = RolesDataGrid.SelectedItem as DataRowView;
 
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "roleid"
-                int roleid = Convert.ToInt32(selectedRow["Номер"]);
-                DeleteClient(roleid);
-                LoadData();
+                // Используем оригинальное имя столбца
+                int roleid = Convert.ToInt32(selectedRow["roleid"]);
+                string roleName = selectedRow["rolename"].ToString();
+
+                // Спрашиваем подтверждение
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить роль '{roleName}'?",
+                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteRole(roleid);
+                    LoadData();
+                    RolesNameTextBox.Text = string.Empty; // Очищаем поле после удаления
+                }
             }
             else
             {
                 MessageBox.Show("Пожалуйста, выберите строку для удаления");
+            }
+        }
+
+        // Обработчик события выбора в DataGrid
+        private void RolesDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataRowView selectedRow = RolesDataGrid.SelectedItem as DataRowView;
+
+            if (selectedRow != null)
+            {
+                // Используем оригинальное имя столбца
+                RolesNameTextBox.Text = selectedRow["rolename"].ToString();
+            }
+            else
+            {
+                RolesNameTextBox.Text = string.Empty;
             }
         }
     }

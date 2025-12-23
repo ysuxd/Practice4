@@ -612,6 +612,8 @@ namespace Practice
         }
 
         // Просмотр истории заказов
+        // Просмотр истории заказов (исправленная версия)
+        // Просмотр истории заказов (полностью исправленная версия)
         private void ViewOrdersButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -619,48 +621,133 @@ namespace Practice
                 using (var connection = dbconnection.GetConnection())
                 {
                     connection.Open();
+
                     string query = @"
-                        SELECT 
-                            o.orderid, 
-                            o.orderdate, 
-                            s.statusname,
-                            COUNT(od.orderdetailsid) as items_count,
-                            SUM(od.price * od.quantity) as total_amount
-                        FROM orders o
-                        LEFT JOIN ordersdetails od ON o.orderid = od.orderid
-                        LEFT JOIN status s ON o.statusid = s.statusid
-                        WHERE o.clientid = @clientid
-                        GROUP BY o.orderid, o.orderdate, s.statusname
-                        ORDER BY o.orderdate DESC, o.orderid DESC";
+                SELECT 
+                    o.orderid, 
+                    o.orderdate,
+                    o.ordertime,
+                    s.statusname,
+                    COUNT(od.orderdetailsid) as items_count,
+                    SUM(od.price * od.quantity) as total_amount
+                FROM orders o
+                LEFT JOIN ordersdetails od ON o.orderid = od.orderid
+                LEFT JOIN status s ON o.statusid = s.statusid
+                WHERE o.clientid = @clientid
+                GROUP BY o.orderid, o.orderdate, o.ordertime, s.statusname
+                ORDER BY o.orderdate DESC, o.ordertime DESC";
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@clientid", clientId);
 
-                        using (var adapter = new NpgsqlDataAdapter(command))
+                        using (var reader = command.ExecuteReader())
                         {
-                            DataTable dataTable = new DataTable();
-                            adapter.Fill(dataTable);
-
-                            if (dataTable.Rows.Count > 0)
+                            if (reader.HasRows)
                             {
-                                string ordersInfo = $"Заказы клиента: {clientName}\n\n";
-                                foreach (DataRow row in dataTable.Rows)
+                                string ordersInfo = $"📋 Заказы клиента: {clientName}\n\n";
+
+                                while (reader.Read())
                                 {
-                                    ordersInfo += $"Заказ #{row["orderid"]} от {Convert.ToDateTime(row["orderdate"]):dd.MM.yyyy}\n";
-                                    ordersInfo += $"Статус: {row["statusname"]}\n";
-                                    ordersInfo += $"Позиций: {row["items_count"]}\n";
-                                    ordersInfo += $"Сумма: {Convert.ToDecimal(row["total_amount"]):C}\n";
+                                    // Получаем orderid
+                                    int orderId = reader.GetInt32(0);
+
+                                    // 1. Безопасно получаем дату (DateOnly или DateTime)
+                                    DateTime orderDate = DateTime.MinValue;
+                                    try
+                                    {
+                                        Type dateType = reader.GetFieldType(1);
+
+                                        if (dateType == typeof(DateOnly))
+                                        {
+                                            DateOnly dateOnly = reader.GetFieldValue<DateOnly>(1);
+                                            orderDate = dateOnly.ToDateTime(TimeOnly.MinValue);
+                                        }
+                                        else if (dateType == typeof(DateTime))
+                                        {
+                                            orderDate = reader.GetDateTime(1);
+                                        }
+                                        else
+                                        {
+                                            // Альтернативный способ
+                                            object dateObj = reader.GetValue(1);
+                                            if (dateObj is DateOnly dOnly)
+                                            {
+                                                orderDate = dOnly.ToDateTime(TimeOnly.MinValue);
+                                            }
+                                            else if (dateObj is DateTime dTime)
+                                            {
+                                                orderDate = dTime;
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        orderDate = DateTime.Today;
+                                    }
+
+                                    // 2. Безопасно получаем время (TimeOnly или TimeSpan)
+                                    string orderTimeString = "";
+                                    try
+                                    {
+                                        Type timeType = reader.GetFieldType(2);
+
+                                        if (timeType == typeof(TimeOnly))
+                                        {
+                                            TimeOnly timeOnly = reader.GetFieldValue<TimeOnly>(2);
+                                            orderTimeString = timeOnly.ToString("HH:mm");
+                                        }
+                                        else if (timeType == typeof(TimeSpan))
+                                        {
+                                            TimeSpan timeSpan = reader.GetTimeSpan(2);
+                                            orderTimeString = timeSpan.ToString(@"hh\:mm");
+                                        }
+                                        else
+                                        {
+                                            // Альтернативный способ
+                                            object timeObj = reader.GetValue(2);
+                                            if (timeObj is TimeOnly tOnly)
+                                            {
+                                                orderTimeString = tOnly.ToString("HH:mm");
+                                            }
+                                            else if (timeObj is TimeSpan tSpan)
+                                            {
+                                                orderTimeString = tSpan.ToString(@"hh\:mm");
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        orderTimeString = "неизвестно";
+                                    }
+
+                                    // 3. Получаем статус
+                                    string status = reader.IsDBNull(3) ? "Не указан" : reader.GetString(3);
+
+                                    // 4. Получаем количество позиций
+                                    int itemsCount = reader.GetInt32(4);
+
+                                    // 5. Получаем сумму
+                                    decimal totalAmount = reader.IsDBNull(5) ? 0 : reader.GetDecimal(5);
+
+                                    // Формируем строку с информацией
+                                    ordersInfo += $"🆔 Заказ #{orderId}\n";
+                                    ordersInfo += $"📅 Дата: {orderDate:dd.MM.yyyy}\n";
+                                    ordersInfo += $"⏰ Время: {orderTimeString}\n";
+                                    ordersInfo += $"📊 Статус: {status}\n";
+                                    ordersInfo += $"📦 Позиций: {itemsCount}\n";
+                                    ordersInfo += $"💰 Сумма: {totalAmount:C}\n";
+
                                     ordersInfo += "────────────────────\n";
                                 }
 
-                                MessageBox.Show(ordersInfo, "История заказов",
-                                                MessageBoxButton.OK, MessageBoxImage.Information);
+                                // Создаем окно для отображения
+                                ShowOrdersWindow(ordersInfo);
                             }
                             else
                             {
                                 MessageBox.Show("У вас пока нет заказов.",
-                                                "История заказов",
+                                                "Мои заказы",
                                                 MessageBoxButton.OK, MessageBoxImage.Information);
                             }
                         }
@@ -669,9 +756,40 @@ namespace Practice
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ошибка при загрузке истории заказов: {ex.Message}");
                 MessageBox.Show($"Ошибка при загрузке истории заказов: {ex.Message}",
                                 "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // Вспомогательный метод для отображения окна с заказами
+        private void ShowOrdersWindow(string ordersInfo)
+        {
+            var textBlock = new TextBlock
+            {
+                Text = ordersInfo,
+                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                FontSize = 14,
+                Margin = new Thickness(10),
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            var scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = textBlock
+            };
+
+            var window = new Window
+            {
+                Title = $"Мои заказы - {clientName}",
+                Width = 600,
+                Height = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                Content = scrollViewer
+            };
+
+            window.ShowDialog();
         }
 
         // Валидация ввода количества

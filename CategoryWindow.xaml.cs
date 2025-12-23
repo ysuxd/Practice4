@@ -44,20 +44,24 @@ namespace Practice
                         DataTable dataTable = new DataTable();
                         adapter.Fill(dataTable);
 
-                        // Переименуем заголовки столбцов для красоты
-                        if (dataTable.Columns.Contains("categoryid"))
-                            dataTable.Columns["categoryid"].ColumnName = "Номер";
-                        // ИСПРАВЛЕНО: опечатка "Statusname" на "categoryname"
-                        if (dataTable.Columns.Contains("categoryname"))
-                            dataTable.Columns["categoryname"].ColumnName = "Название";
-
+                        // НЕ переименовываем столбцы, чтобы Binding работал правильно!
+                        // Оставляем оригинальные имена: categoryid и categoryname
                         CategoryDataGrid.ItemsSource = dataTable.DefaultView;
+
+                        // Обновляем счетчик категорий
+                        UpdateCategoriesCount(dataTable.Rows.Count);
                     }
                 }
             }
         }
 
-        private void AddClient(string categoryName)
+        // Метод для обновления счетчика категорий
+        private void UpdateCategoriesCount(int count)
+        {
+            CategoriesCountText.Text = $"Всего категорий: {count}";
+        }
+
+        private void AddCategory(string categoryName)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -71,12 +75,11 @@ namespace Practice
             }
         }
 
-        private void UpdateClient(int categoryid, string categoryName)
+        private void UpdateCategory(int categoryid, string categoryName)
         {
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                // ИСПРАВЛЕНО: опечатка "categoryd" на "categoryid"
                 string query = "Update category set categoryname=@categoryName WHERE categoryid=@categoryid";
                 using (var command = new NpgsqlCommand(query, connection))
                 {
@@ -87,7 +90,7 @@ namespace Practice
             }
         }
 
-        private void DeleteClient(int categoryid)
+        private void DeleteCategory(int categoryid)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -103,31 +106,40 @@ namespace Practice
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string categoryName = CategoryNameTextBox.Text;
+            string categoryName = CategoryNameTextBox.Text.Trim();
 
             if (!string.IsNullOrWhiteSpace(categoryName))
             {
-                AddClient(categoryName);
+                AddCategory(categoryName);
                 LoadData();
+                CategoryNameTextBox.Text = string.Empty; // Очищаем поле после добавления
             }
             else
             {
-                MessageBox.Show("Пожалуйста, введите корректные данные.");
+                MessageBox.Show("Пожалуйста, введите название категории.");
             }
         }
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)CategoryDataGrid.SelectedItem;
+            DataRowView selectedRow = CategoryDataGrid.SelectedItem as DataRowView;
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "categoryid"
-                int categoryid = Convert.ToInt32(selectedRow["Номер"]);
-                string categoryName = CategoryNameTextBox.Text;
+                // Используем оригинальное имя столбца
+                int categoryid = Convert.ToInt32(selectedRow["categoryid"]);
+                string categoryName = CategoryNameTextBox.Text.Trim();
+
                 if (!string.IsNullOrWhiteSpace(categoryName))
                 {
-                    UpdateClient(categoryid, categoryName);
-                    LoadData();
+                    var result = MessageBox.Show($"Вы уверены, что хотите обновить категорию?",
+                        "Подтверждение обновления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        UpdateCategory(categoryid, categoryName);
+                        LoadData();
+                        CategoryNameTextBox.Text = string.Empty; // Очищаем поле после обновления
+                    }
                 }
                 else
                 {
@@ -142,18 +154,43 @@ namespace Practice
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)CategoryDataGrid.SelectedItem;
+            DataRowView selectedRow = CategoryDataGrid.SelectedItem as DataRowView;
 
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "categoryid"
-                int categoryid = Convert.ToInt32(selectedRow["Номер"]);
-                DeleteClient(categoryid);
-                LoadData();
+                // Используем оригинальное имя столбца
+                int categoryid = Convert.ToInt32(selectedRow["categoryid"]);
+                string categoryName = selectedRow["categoryname"].ToString();
+
+                // Спрашиваем подтверждение
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить категорию '{categoryName}'?",
+                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteCategory(categoryid);
+                    LoadData();
+                    CategoryNameTextBox.Text = string.Empty; // Очищаем поле после удаления
+                }
             }
             else
             {
                 MessageBox.Show("Пожалуйста, выберите строку для удаления");
+            }
+        }
+
+        private void CategoryDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataRowView selectedRow = CategoryDataGrid.SelectedItem as DataRowView;
+
+            if (selectedRow != null)
+            {
+                // Используем оригинальное имя столбца
+                CategoryNameTextBox.Text = selectedRow["categoryname"].ToString();
+            }
+            else
+            {
+                CategoryNameTextBox.Text = string.Empty;
             }
         }
     }

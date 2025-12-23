@@ -144,21 +144,21 @@ namespace Practice
                 {
                     connection.Open();
                     string query = @"
-                        SELECT 
-                            o.orderid, 
-                            o.clientid,
-                            CONCAT(c.lastname, ' ', c.firstname, ' ', COALESCE(c.surname, '')) as clientname,
-                            o.employeeid,
-                            CONCAT(e.lastname, ' ', e.firstname, ' ', COALESCE(e.surname, '')) as employeename,
-                            o.statusid,
-                            s.statusname,
-                            o.orderdate,
-                            o.ordertime
-                        FROM orders o
-                        LEFT JOIN client c ON o.clientid = c.clientid
-                        LEFT JOIN employee e ON o.employeeid = e.employeeid
-                        LEFT JOIN status s ON o.statusid = s.statusid
-                        ORDER BY o.orderdate DESC, o.ordertime DESC";
+                SELECT 
+                    o.orderid, 
+                    o.clientid,
+                    CONCAT(c.lastname, ' ', c.firstname, ' ', COALESCE(c.surname, '')) as clientname,
+                    o.employeeid,
+                    CONCAT(e.lastname, ' ', e.firstname, ' ', COALESCE(e.surname, '')) as employeename,
+                    o.statusid,
+                    s.statusname,
+                    o.orderdate,
+                    o.ordertime
+                FROM orders o
+                LEFT JOIN client c ON o.clientid = c.clientid
+                LEFT JOIN employee e ON o.employeeid = e.employeeid
+                LEFT JOIN status s ON o.statusid = s.statusid
+                ORDER BY o.orderdate DESC, o.ordertime DESC";
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {
@@ -167,6 +167,9 @@ namespace Practice
                             DataTable dataTable = new DataTable();
                             adapter.Fill(dataTable);
                             OrderDataGrid.ItemsSource = dataTable.DefaultView;
+
+                            // Обновляем счетчик заказов
+                            UpdateOrdersCount(dataTable.Rows.Count);
                         }
                     }
                 }
@@ -180,6 +183,12 @@ namespace Practice
             {
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // Метод для обновления счетчика заказов
+        private void UpdateOrdersCount(int count)
+        {
+            OrdersCountText.Text = $"Всего заказов: {count}";
         }
 
         // Добавление заказа

@@ -21,7 +21,7 @@ namespace Practice
         {
             // Скрываем предыдущие сообщения
             ErrorMessageTextBlock.Visibility = Visibility.Collapsed;
-            SuccessMessageTextBlock.Visibility = Visibility.Collapsed;
+            
 
             // Получаем данные из полей
             string lastName = LastNameTextBox.Text.Trim();
@@ -137,10 +137,7 @@ namespace Practice
                             // Подтверждаем транзакцию
                             transaction.Commit();
 
-                            // Показываем сообщение об успехе
-                            ShowSuccessMessage("✅ Регистрация успешно завершена!\n" +
-                                             $"👤 Логин: {login}\n" +
-                                             "🎭 Роль: Клиент");
+                           
 
                             // Очищаем поля через 3 секунды и закрываем окно
                             ClearFields();
@@ -184,11 +181,7 @@ namespace Practice
             ErrorMessageTextBlock.Visibility = Visibility.Visible;
         }
 
-        private void ShowSuccessMessage(string message)
-        {
-            SuccessMessageTextBlock.Text = message;
-            SuccessMessageTextBlock.Visibility = Visibility.Visible;
-        }
+        
 
         private void ClearFields()
         {

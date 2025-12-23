@@ -33,7 +33,16 @@ namespace Practice
             using (var connection = dbconnection.GetConnection())
             {
                 connection.Open();
-                string query = "SELECT clientid, firstname, surname, lastname FROM Client ORDER BY clientid ASC";
+                // Добавляем вычисление полного имени
+                string query = @"SELECT 
+                        clientid, 
+                        firstname, 
+                        surname, 
+                        lastname,
+                        COALESCE(lastname || ' ' || firstname || ' ' || surname, lastname || ' ' || firstname) as fullname
+                        FROM Client 
+                        ORDER BY clientid ASC";
+
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     using (var adapter = new NpgsqlDataAdapter(command))
@@ -41,20 +50,21 @@ namespace Practice
                         DataTable dataTable = new DataTable();
                         adapter.Fill(dataTable);
 
-                        // Переименуем заголовки столбцов для красоты
-                        if (dataTable.Columns.Contains("clientid"))
-                            dataTable.Columns["clientid"].ColumnName = "Номер";
-                        if (dataTable.Columns.Contains("firstname"))
-                            dataTable.Columns["firstname"].ColumnName = "Имя";
-                        if (dataTable.Columns.Contains("surname"))
-                            dataTable.Columns["surname"].ColumnName = "Отчество";
-                        if (dataTable.Columns.Contains("lastname"))
-                            dataTable.Columns["lastname"].ColumnName = "Фамилия";
-
+                        // НЕ переименовываем столбцы, чтобы Binding работал правильно
+                        // Оставляем оригинальные имена, которые указаны в Binding в XAML
                         ClientDataGrid.ItemsSource = dataTable.DefaultView;
+
+                        // Обновляем счетчик клиентов
+                        UpdateClientsCount(dataTable.Rows.Count);
                     }
                 }
             }
+        }
+
+        // Метод для обновления счетчика клиентов
+        private void UpdateClientsCount(int count)
+        {
+            ClientsCountText.Text = $"Всего клиентов: {count}";
         }
 
         private void AddClient(string firstName, string surname, string lastName)
@@ -106,40 +116,47 @@ namespace Practice
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string firstName = FirstNameTextBox.Text;
-            string surname = SurnameNameTextBox.Text;
-            string lastName = LastNameTextBox.Text;
+            string firstName = FirstNameTextBox.Text.Trim();
+            string surname = SurnameTextBox.Text.Trim();
+            string lastName = LastNameTextBox.Text.Trim();
 
             if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
             {
                 AddClient(firstName, surname, lastName);
                 LoadData();
+                ClearInputFields();
             }
             else
             {
-                MessageBox.Show("Пожалуйста, введите корректные данные.");
+                MessageBox.Show("Пожалуйста, введите корректные данные (имя и фамилия обязательны).");
             }
         }
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)ClientDataGrid.SelectedItem;
+            DataRowView selectedRow = ClientDataGrid.SelectedItem as DataRowView;
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "clientid"
                 int clientid = Convert.ToInt32(selectedRow["Номер"]);
-                string firstName = FirstNameTextBox.Text;
-                string surname = SurnameNameTextBox.Text;
-                string lastName = LastNameTextBox.Text;
+                string firstName = FirstNameTextBox.Text.Trim();
+                string surname = SurnameTextBox.Text.Trim();
+                string lastName = LastNameTextBox.Text.Trim();
 
                 if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
                 {
-                    UpdateClient(clientid, firstName, surname, lastName);
-                    LoadData();
+                    var result = MessageBox.Show($"Вы уверены, что хотите обновить данные клиента?",
+                        "Подтверждение обновления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        UpdateClient(clientid, firstName, surname, lastName);
+                        LoadData();
+                        ClearInputFields();
+                    }
                 }
                 else
                 {
-                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления (имя и фамилия обязательны)");
                 }
             }
             else
@@ -150,19 +167,56 @@ namespace Practice
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)ClientDataGrid.SelectedItem;
+            DataRowView selectedRow = ClientDataGrid.SelectedItem as DataRowView;
 
             if (selectedRow != null)
             {
-                // ИСПРАВЛЕНО: используем новое имя столбца "Номер" вместо "clientid"
                 int clientid = Convert.ToInt32(selectedRow["Номер"]);
-                DeleteClient(clientid);
-                LoadData();
+                string firstName = selectedRow["Имя"].ToString();
+                string lastName = selectedRow["Фамилия"].ToString();
+
+                // Спрашиваем подтверждение
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить клиента {lastName} {firstName}?",
+                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteClient(clientid);
+                    LoadData();
+                    ClearInputFields();
+                }
             }
             else
             {
                 MessageBox.Show("Пожалуйста, выберите строку для удаления");
             }
+        }
+
+        // Обработчик события выбора в DataGrid
+        private void ClientDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataRowView selectedRow = ClientDataGrid.SelectedItem as DataRowView;
+
+            if (selectedRow != null)
+            {
+                // Заполняем поля ввода данными выбранного клиента
+                LastNameTextBox.Text = selectedRow["Фамилия"].ToString();
+                FirstNameTextBox.Text = selectedRow["Имя"].ToString();
+                SurnameTextBox.Text = selectedRow["Отчество"].ToString();
+            }
+            else
+            {
+                // Очищаем поля ввода, если ничего не выбрано
+                ClearInputFields();
+            }
+        }
+
+        // Метод для очистки полей ввода
+        private void ClearInputFields()
+        {
+            LastNameTextBox.Text = string.Empty;
+            FirstNameTextBox.Text = string.Empty;
+            SurnameTextBox.Text = string.Empty;
         }
     }
 }

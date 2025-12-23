@@ -20,8 +20,6 @@ namespace Practice
     {
         private DatabaseConnection dbconnection;
 
-
-
         public StatusWindow()
         {
             InitializeComponent();
@@ -29,6 +27,7 @@ namespace Practice
             dbconnection = new DatabaseConnection();
             LoadData();
         }
+
         public void LoadData()
         {
             using (var connection = dbconnection.GetConnection())
@@ -42,19 +41,24 @@ namespace Practice
                         DataTable dataTable = new DataTable();
                         adapter.Fill(dataTable);
 
-                        // Переименуем заголовки столбцов для красоты
-                        if (dataTable.Columns.Contains("statusid"))
-                            dataTable.Columns["statusid"].ColumnName = "Номер";
-                        if (dataTable.Columns.Contains("Statusname"))
-                            dataTable.Columns["statusname"].ColumnName = "Название";
-
+                        // НЕ переименовываем столбцы, чтобы Binding работал правильно!
+                        // Оставляем оригинальные имена: statusid и statusname
                         StatusDataGrid.ItemsSource = dataTable.DefaultView;
+
+                        // Обновляем счетчик статусов
+                        UpdateStatusesCount(dataTable.Rows.Count);
                     }
                 }
             }
         }
 
-        private void AddClient(string statusName)
+        // Метод для обновления счетчика статусов
+        private void UpdateStatusesCount(int count)
+        {
+            StatusesCountText.Text = $"Всего статусов: {count}";
+        }
+
+        private void AddStatus(string statusName)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -68,8 +72,7 @@ namespace Practice
             }
         }
 
-
-        private void UpdateClient(int statusid, string statusName)
+        private void UpdateStatus(int statusid, string statusName)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -78,13 +81,13 @@ namespace Practice
                 using (var command = new NpgsqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@statusName", statusName);
-                    command.Parameters.AddWithValue("@statusid", statusid); // Добавлен этот параметр
+                    command.Parameters.AddWithValue("@statusid", statusid);
                     command.ExecuteNonQuery();
                 }
             }
         }
 
-        private void DeleteClient(int statusid)
+        private void DeleteStatus(int statusid)
         {
             using (var connection = dbconnection.GetConnection())
             {
@@ -100,41 +103,92 @@ namespace Practice
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string statusName = StatusNameTextBox.Text;
+            string statusName = StatusNameTextBox.Text.Trim();
 
             if (!string.IsNullOrWhiteSpace(statusName))
             {
-                AddClient(statusName);
+                AddStatus(statusName);
                 LoadData();
+                StatusNameTextBox.Text = string.Empty; // Очищаем поле после добавления
             }
             else
             {
-                MessageBox.Show("Пожалуйста, введите корректные данные.");
+                MessageBox.Show("Пожалуйста, введите название статуса.");
             }
         }
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)StatusDataGrid.SelectedItem;
+            DataRowView selectedRow = StatusDataGrid.SelectedItem as DataRowView;
             if (selectedRow != null)
             {
-                // Используйте новое имя столбца
-                int statusid = Convert.ToInt32(selectedRow["Номер"]);
-                string statusName = StatusNameTextBox.Text;
-                // ... остальной код
+                // Используем оригинальное имя столбца
+                int statusid = Convert.ToInt32(selectedRow["statusid"]);
+                string statusName = StatusNameTextBox.Text.Trim();
+
+                if (!string.IsNullOrWhiteSpace(statusName))
+                {
+                    var result = MessageBox.Show($"Вы уверены, что хотите обновить статус?",
+                        "Подтверждение обновления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        UpdateStatus(statusid, statusName);
+                        LoadData();
+                        StatusNameTextBox.Text = string.Empty; // Очищаем поле после обновления
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Пожалуйста, введите корректные данные для обновления");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите строку для обновления");
             }
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            DataRowView selectedRow = (DataRowView)StatusDataGrid.SelectedItem;
+            DataRowView selectedRow = StatusDataGrid.SelectedItem as DataRowView;
 
             if (selectedRow != null)
             {
-                // Используйте новое имя столбца
-                int statusid = Convert.ToInt32(selectedRow["Номер"]);
-                DeleteClient(statusid);
-                LoadData();
+                // Используем оригинальное имя столбца
+                int statusid = Convert.ToInt32(selectedRow["statusid"]);
+                string statusName = selectedRow["statusname"].ToString();
+
+                // Спрашиваем подтверждение
+                var result = MessageBox.Show($"Вы уверены, что хотите удалить статус '{statusName}'?",
+                    "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    DeleteStatus(statusid);
+                    LoadData();
+                    StatusNameTextBox.Text = string.Empty; // Очищаем поле после удаления
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите строку для удаления");
+            }
+        }
+
+        // Обработчик события выбора в DataGrid
+        private void StatusDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataRowView selectedRow = StatusDataGrid.SelectedItem as DataRowView;
+
+            if (selectedRow != null)
+            {
+                // Используем оригинальное имя столбца
+                StatusNameTextBox.Text = selectedRow["statusname"].ToString();
+            }
+            else
+            {
+                StatusNameTextBox.Text = string.Empty;
             }
         }
     }

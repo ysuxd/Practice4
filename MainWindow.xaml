@@ -4,94 +4,290 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Авторизация" Height="300" Width="400"
+        Title="Авторизация - Столовая КНГК" 
+        Height="400" 
+        Width="450"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        ResizeMode="NoResize"
+        Background="#f8f9fa"
+        SizeToContent="Height">
+    <!-- Добавил автоматическую подстройку высоты -->
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Window.Resources>
+        <!-- Кисти цветов колледжа -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0055a5"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#003366"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#ff6600"/>
+        <SolidColorBrush x:Key="LightBrush" Color="#e6f0ff"/>
+        <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+        <SolidColorBrush x:Key="GrayLightBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextDarkBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4caf50"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#f44336"/>
+        <SolidColorBrush x:Key="InfoBrush" Color="#2196F3"/>
 
-        <!-- Заголовок -->
-        <Label Content="Система авторизации" 
-               Grid.Row="0" 
-               Grid.ColumnSpan="2"
-               HorizontalAlignment="Center"
-               FontSize="18"
-               FontWeight="Bold"
-               Margin="0,20,0,20"/>
+        <!-- Стиль для кнопок -->
+        <Style x:Key="CollegeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                                <Setter Property="Foreground" Value="#ffd166"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#002244"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- Логин -->
-        <Label Content="Логин:" 
-               Grid.Row="1" 
-               Grid.Column="0"
-               HorizontalAlignment="Right"
-               Margin="10,5,10,5"/>
+        <!-- Стиль для кнопок авторизации -->
+        <Style x:Key="AuthButtonStyle" TargetType="Button" BasedOn="{StaticResource CollegeButtonStyle}">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Width" Value="110"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="8,0,8,0"/>
+        </Style>
 
-        <TextBox x:Name="LoginTextBox" 
-                 Grid.Row="1" 
-                 Grid.Column="1"
-                 Margin="10,5,20,5"
-                 Height="25"/>
+        <Style x:Key="LoginButtonStyle" TargetType="Button" BasedOn="{StaticResource AuthButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+        </Style>
 
-        <!-- Пароль -->
-        <Label Content="Пароль:" 
-               Grid.Row="2" 
-               Grid.Column="0"
-               HorizontalAlignment="Right"
-               Margin="10,5,10,5"/>
+        <Style x:Key="RegisterButtonStyle" TargetType="Button" BasedOn="{StaticResource AuthButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource InfoBrush}"/>
+        </Style>
 
-        <PasswordBox x:Name="PasswordBox" 
-                     Grid.Row="2" 
-                     Grid.Column="1"
-                     Margin="10,5,20,5"
-                     Height="25"/>
+        <Style x:Key="ExitButtonStyle" TargetType="Button" BasedOn="{StaticResource AuthButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource ErrorBrush}"/>
+        </Style>
 
-        <!-- Сообщение об ошибке -->
-        <TextBlock x:Name="ErrorMessageTextBlock"
-                   Grid.Row="3"
-                   Grid.ColumnSpan="2"
-                   Foreground="Red"
-                   HorizontalAlignment="Center"
-                   Margin="10,10,10,10"
-                   TextWrapping="Wrap"
-                   Visibility="Collapsed"/>
+        <!-- Стиль для полей ввода -->
+        <Style x:Key="InputFieldStyle" TargetType="Control">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GrayLightBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
 
-        <!-- Кнопки -->
-        <StackPanel Grid.Row="4" 
-            Grid.ColumnSpan="2"
-            Orientation="Horizontal"
-            HorizontalAlignment="Center"
-            Margin="0,20,0,20">
+        <!-- Стиль для меток -->
+        <Style x:Key="LabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+    </Window.Resources>
 
-            <Button x:Name="LoginButton" 
-            Content="Войти"
-            Click="LoginButton_Click"
-            Width="100"
-            Height="30"
-            Margin="5,0,5,0"/>
+    <Grid Background="#f0f5ff">
+        <!-- Основной контейнер -->
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <Button x:Name="RegisterButton"
-            Content="Регистрация"
-            Click="RegisterButton_Click"
-            Width="100"
-            Height="30"
-            Margin="5,0,5,0"/>
+            <!-- Шапка -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource PrimaryBrush}"
+                    CornerRadius="8"
+                    Margin="0,0,0,15"
+                    Padding="15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <Button Content="Выход"
-            Click="ExitButton_Click"
-            Width="100"
-            Height="30"
-            Margin="5,0,5,0"/>
-        </StackPanel>
+                    <!-- Логотип -->
+                    <Border Grid.Column="0" 
+                            Background="White" 
+                            Width="50" 
+                            Height="50"
+                            CornerRadius="25"
+                            Padding="10">
+                        <Viewbox>
+                            <TextBlock Text="🔐" 
+                                       FontSize="20"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Информация -->
+                    <StackPanel Grid.Column="1" 
+                                Margin="15,0,0,0"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Столовая Касимовского нефтегазового колледжа" 
+                                   Foreground="White"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Text="Система управления заказами" 
+                                   Foreground="#ccd9ff"
+                                   FontSize="12"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Форма авторизации -->
+            <Border Grid.Row="1" 
+                    Background="White"
+                    CornerRadius="8"
+                    Padding="30"
+                    BorderBrush="{StaticResource GrayLightBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Заголовок формы -->
+                    <TextBlock Grid.Row="0"
+                               Text="Вход в систему"
+                               Foreground="{StaticResource SecondaryBrush}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,25"/>
+
+                    <!-- Логин -->
+                    <Grid Grid.Row="1" Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <!-- Фиксированная ширина для метки -->
+                            <ColumnDefinition Width="*"/>
+                            <!-- Оставшееся пространство для поля ввода -->
+                        </Grid.ColumnDefinitions>
+
+                        <Label Content="Логин:" 
+                               Grid.Column="0"
+                               Style="{StaticResource LabelStyle}"/>
+
+                        <TextBox x:Name="LoginTextBox" 
+                                 Grid.Column="1"
+                                 Style="{StaticResource InputFieldStyle}"
+                                 KeyDown="LoginTextBox_KeyDown"/>
+                    </Grid>
+
+                    <!-- Пароль -->
+                    <Grid Grid.Row="2" Margin="0,0,0,30">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Content="Пароль:" 
+                               Grid.Column="0"
+                               Style="{StaticResource LabelStyle}"/>
+
+                        <PasswordBox x:Name="PasswordBox" 
+                                     Grid.Column="1"
+                                     Style="{StaticResource InputFieldStyle}"
+                                     KeyDown="PasswordBox_KeyDown"/>
+                    </Grid>
+
+                    <!-- Сообщение об ошибке -->
+                    <Border x:Name="ErrorMessageBorder"
+                            Grid.Row="3"
+                            Background="#ffebee"
+                            CornerRadius="5"
+                            BorderBrush="#ffcdd2"
+                            BorderThickness="1"
+                            Padding="12,8"
+                            Margin="0,0,0,20"
+                            Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚠️" 
+                                       FontSize="13"
+                                       Margin="0,0,8,0"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="ErrorMessageTextBlock"
+                                       Foreground="#d32f2f"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Кнопки -->
+                    <StackPanel Grid.Row="4" 
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,10,0,0">
+                        <Button x:Name="LoginButton" 
+                                Content="Войти"
+                                Style="{StaticResource LoginButtonStyle}"
+                                Click="LoginButton_Click"
+                                ToolTip="Войти в систему">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🚪" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Войти"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+
+                        <Button x:Name="RegisterButton"
+                                Content="Регистрация"
+                                Style="{StaticResource RegisterButtonStyle}"
+                                Click="RegisterButton_Click"
+                                ToolTip="Зарегистрировать нового пользователя">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📝" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Регистрация"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+
+                        <Button Content="Выход"
+                                Style="{StaticResource ExitButtonStyle}"
+                                Click="ExitButton_Click"
+                                ToolTip="Выйти из приложения">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🚪" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Выход"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

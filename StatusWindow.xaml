@@ -5,99 +5,354 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Practice"
         mc:Ignorable="d"
-        Title="StatusWindow" Height="450" Width="800">
+        Title="Управление статусами" 
+        Height="600" 
+        Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#f8f9fa">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <!-- DataGrid -->
-            <RowDefinition Height="Auto" />
-            <!-- Заголовки полей -->
-            <RowDefinition Height="Auto" />
-            <!-- Поля ввода -->
-            <RowDefinition Height="Auto" />
-            <!-- Кнопки -->
-            <RowDefinition Height="10" />
-            <!-- Отступ снизу -->
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <!-- Кисти цветов колледжа -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0055a5"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#003366"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#ff6600"/>
+        <SolidColorBrush x:Key="LightBrush" Color="#e6f0ff"/>
+        <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+        <SolidColorBrush x:Key="GrayLightBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextDarkBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4caf50"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#ff9800"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#f44336"/>
+        <SolidColorBrush x:Key="InfoBrush" Color="#2196F3"/>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <!-- Стиль для кнопок -->
+        <Style x:Key="CollegeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                                <Setter Property="Foreground" Value="#ffd166"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#002244"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- DataGrid с настройками -->
-        <DataGrid x:Name="StatusDataGrid" 
-                  Grid.Row="0" 
-                  Grid.ColumnSpan="3"
-                  Margin="10"
-                  AutoGenerateColumns="True"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  SelectionMode="Single"
-                  SelectionUnit="FullRow"
-                  IsReadOnly="True"
-                  HorizontalScrollBarVisibility="Disabled">
+        <!-- Стиль для кнопок операций -->
+        <Style x:Key="OperationButtonStyle" TargetType="Button" BasedOn="{StaticResource CollegeButtonStyle}">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+        </Style>
 
-            <!-- Стиль для растягивания столбцов -->
-            <DataGrid.Resources>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                </Style>
-            </DataGrid.Resources>
-        </DataGrid>
+        <!-- Стиль для кнопок операций -->
+        <Style x:Key="AddButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+        </Style>
 
-        <!-- Заголовки полей ввода -->
-        <Label Content="Название статуса" 
-               Grid.Row="1" 
-               Grid.Column="0" 
-               HorizontalAlignment="Center" 
-               Margin="0,5,0,0" 
-               FontSize="14" 
-               VerticalAlignment="Top"
-               FontWeight="Bold"/>
+        <Style x:Key="UpdateButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource InfoBrush}"/>
+        </Style>
 
-        
+        <Style x:Key="DeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource ErrorBrush}"/>
+        </Style>
 
-        
+        <!-- Стиль для заголовков секций -->
+        <Style x:Key="SectionHeaderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource LightBrush}"/>
+            <Setter Property="CornerRadius" Value="8,8,0,0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderBrush" Value="#d1e0ff"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
 
-        <!-- Поля ввода -->
-        <TextBox x:Name="StatusNameTextBox"
-                 Grid.Row="2"
-                 Grid.Column="0"
-                 Margin="10,5,5,10"
-                 Height="30"
-                 VerticalContentAlignment="Center"/>
+        <!-- Стиль для текста заголовков -->
+        <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
 
-        
+        <!-- Стиль для заголовков полей -->
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
 
-        <!-- Кнопки -->
-        <StackPanel Grid.Row="3"
-                    Grid.ColumnSpan="3"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="10,5,10,10">
+        <!-- Стиль для комбобоксов и текстбоксов -->
+        <Style x:Key="InputFieldStyle" TargetType="Control">
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GrayLightBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
 
-            <Button Content="Добавить"
-                    Click="AddButton_Click"
-                    Width="100"
-                    Height="30"
-                    Margin="0,0,5,0"/>
+        <!-- Стиль для DataGrid -->
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GrayLightBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="AlternatingRowBackground" Value="#f9f9f9"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource GrayLightBrush}"/>
+            <Setter Property="VerticalGridLinesBrush" Value="{StaticResource GrayLightBrush}"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="SelectionUnit" Value="FullRow"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
 
-            <Button Content="Изменить"
-                    Click="UpdateButton_Click"
-                    Width="100"
-                    Height="30"
-                    Margin="5,0,5,0"/>
+        <!-- Стиль для заголовков DataGrid -->
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource LightBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="BorderBrush" Value="#d1e0ff"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+    </Window.Resources>
 
-            <Button Content="Удалить"
-                    Click="DeleteButton_Click"
-                    Width="100"
-                    Height="30"
-                    Margin="5,0,0,0"/>
-        </StackPanel>
+    <Grid Background="#f0f5ff">
+        <!-- Основной контейнер -->
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
+            <!-- Шапка -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource PrimaryBrush}"
+                    CornerRadius="10"
+                    Margin="0,0,0,15"
+                    Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Логотип -->
+                    <Border Grid.Column="0" 
+                            Background="White" 
+                            Width="50" 
+                            Height="50"
+                            CornerRadius="25"
+                            Padding="8">
+                        <Viewbox>
+                            <TextBlock Text="🏷️" 
+                                       FontSize="24"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Информация -->
+                    <StackPanel Grid.Column="1" 
+                                Margin="15,0,0,0"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Управление статусами" 
+                                   Foreground="White"
+                                   FontSize="20"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="Статусы заказов" 
+                                   Foreground="#ccd9ff"
+                                   FontSize="14"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <!-- Статус -->
+                    <Border Grid.Column="2" 
+                            Background="#002244"
+                            CornerRadius="15"
+                            Padding="10,5"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" 
+                                       Margin="0,0,5,0"
+                                       Foreground="White"/>
+                            <TextBlock x:Name="StatusesCountText"
+                                       Text="Всего статусов: 0" 
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Основное содержимое -->
+            <Border Grid.Row="1" 
+                    Background="White"
+                    CornerRadius="8"
+                    BorderBrush="{StaticResource GrayLightBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Таблица -->
+                    <Border Grid.Row="0" 
+                            CornerRadius="8,8,0,0"
+                            BorderThickness="0,0,0,1"
+                            BorderBrush="#e0e0e0">
+                        <DataGrid x:Name="StatusDataGrid" 
+                                  Style="{StaticResource DataGridStyle}"
+                                  ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                  SelectionChanged="StatusDataGrid_SelectionChanged"
+                                  HorizontalScrollBarVisibility="Auto">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" 
+                                                    Binding="{Binding statusid}" 
+                                                    Width="60"
+                                                    IsReadOnly="True"/>
+
+                                <DataGridTextColumn Header="Название статуса" 
+                                                    Binding="{Binding statusname}" 
+                                                    Width="*"
+                                                    MinWidth="200"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Панель управления -->
+                    <Border Grid.Row="1" 
+                            Background="#f8f9fa"
+                            CornerRadius="0,0,8,8"
+                            Padding="15"
+                            BorderBrush="#e0e0e0"
+                            BorderThickness="0,1,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Поле ввода -->
+                            <StackPanel Grid.Row="0" 
+                                        Margin="0,0,0,15">
+                                <TextBlock Text="Название статуса" 
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="StatusNameTextBox"
+                                         Style="{StaticResource InputFieldStyle}"
+                                         MaxLength="100"/>
+                            </StackPanel>
+
+                            <!-- Кнопки и информация -->
+                            <Border Grid.Row="1" 
+                                    Background="{StaticResource LightBrush}"
+                                    CornerRadius="6"
+                                    Padding="12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Информация -->
+                                    <StackPanel Orientation="Horizontal" 
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="ℹ️" 
+                                                   Foreground="{StaticResource SecondaryBrush}"
+                                                   Margin="0,0,5,0"/>
+                                        <TextBlock Text="Для редактирования выберите запись в таблице" 
+                                                   Foreground="{StaticResource TextDarkBrush}"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- Кнопки -->
+                                    <StackPanel Grid.Column="1" 
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Right">
+                                        <Button Content="Добавить"
+                                                Style="{StaticResource AddButtonStyle}"
+                                                Click="AddButton_Click"
+                                                ToolTip="Добавить новый статус">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="➕" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="Добавить"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+
+                                        <Button Content="Изменить"
+                                                Style="{StaticResource UpdateButtonStyle}"
+                                                Click="UpdateButton_Click"
+                                                ToolTip="Изменить выбранный статус">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="✏️" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="Изменить"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+
+                                        <Button Content="Удалить"
+                                                Style="{StaticResource DeleteButtonStyle}"
+                                                Click="DeleteButton_Click"
+                                                ToolTip="Удалить выбранный статус">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🗑️" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="Удалить"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
