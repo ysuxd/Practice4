@@ -54,18 +54,14 @@ namespace Practice
                         // Оставляем оригинальные имена, которые указаны в Binding в XAML
                         ClientDataGrid.ItemsSource = dataTable.DefaultView;
 
-                        // Обновляем счетчик клиентов
-                        UpdateClientsCount(dataTable.Rows.Count);
+                        
                     }
                 }
             }
         }
 
         // Метод для обновления счетчика клиентов
-        private void UpdateClientsCount(int count)
-        {
-            ClientsCountText.Text = $"Всего клиентов: {count}";
-        }
+        
 
         private void AddClient(string firstName, string surname, string lastName)
         {

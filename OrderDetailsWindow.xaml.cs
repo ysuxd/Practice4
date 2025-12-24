@@ -15,21 +15,178 @@ namespace Practice
         private DataTable clientsTable;
         private DataTable employeesTable;
         private DataTable statusesTable;
+        private int selectedOrderId = -1; // -1 означает "все заказы"
+        private decimal totalAmount = 0;
+        private int totalItems = 0;
 
+        // Конструктор для просмотра всех деталей заказов
         public OrderDetailsWindow()
         {
             InitializeComponent();
             dbconnection = new DatabaseConnection();
-            LoadDishes();       // Загружаем блюда
-            LoadOrders();       // Загружаем заказы
-            LoadCategories();   // Загружаем категории
-            LoadClients();      // Загружаем клиентов
-            LoadEmployees();    // Загружаем сотрудников
-            LoadStatuses();     // Загружаем статусы
+            InitializeWindow();
+        }
+
+        // Конструктор для просмотра деталей конкретного заказа
+        public OrderDetailsWindow(int orderId)
+        {
+            InitializeComponent();
+            dbconnection = new DatabaseConnection();
+            selectedOrderId = orderId;
+            InitializeWindow();
+        }
+
+        private void InitializeWindow()
+        {
+            LoadDishes();
+            LoadOrders();
+            LoadCategories();
+            LoadClients();
+            LoadEmployees();
+            LoadStatuses();
             LoadData();
+
+            // Если открыто для конкретного заказа
+            if (selectedOrderId != -1)
+            {
+                ConfigureForSingleOrder();
+            }
+            else
+            {
+                ConfigureForAllOrders();
+            }
 
             // Обработчик изменения выбора блюда
             DishComboBox.SelectionChanged += DishComboBox_SelectionChanged;
+        }
+
+        private void ConfigureForSingleOrder()
+        {
+            // Настраиваем окно для просмотра одного заказа
+            WindowTitleTextBlock.Text = $"Детали заказа #{selectedOrderId}";
+            WindowSubtitleTextBlock.Text = "Позиции заказа";
+
+            // Показываем информацию о заказе
+            OrderInfoBorder.Visibility = Visibility.Visible;
+            OrderIdTextBlock.Text = $"Заказ #{selectedOrderId}";
+
+            // Обновляем информацию о статусе заказа
+            UpdateOrderStatusInfo();
+
+            // Показываем итоговую сумму
+            UpdateTotalAmount();
+            TotalAmountBorder.Visibility = Visibility.Visible;
+
+            // Скрываем или отключаем выбор заказа
+            OrderPanel.Visibility = Visibility.Collapsed;
+
+            // Показываем кнопку "Назад к заказам"
+            BackToOrdersButton.Visibility = Visibility.Visible;
+
+            // Обновляем текст информационного блока
+            InfoTextBlock.Text = $"Позиции заказа #{selectedOrderId}. Для редактирования выберите запись в таблице";
+        }
+
+        private void ConfigureForAllOrders()
+        {
+            // Настраиваем окно для просмотра всех заказов
+            WindowTitleTextBlock.Text = "Детали всех заказов";
+            WindowSubtitleTextBlock.Text = "Управление позициями заказов";
+
+            // Скрываем ненужные элементы
+            OrderInfoBorder.Visibility = Visibility.Collapsed;
+            BackToOrdersButton.Visibility = Visibility.Collapsed;
+            TotalAmountBorder.Visibility = Visibility.Collapsed;
+
+            // Показываем панель выбора заказа
+            OrderPanel.Visibility = Visibility.Visible;
+
+            // Обновляем текст информационного блока
+            InfoTextBlock.Text = "Для редактирования выберите запись в таблице";
+
+            // Устанавливаем первый заказ, если есть
+            if (OrderComboBox.Items.Count > 0)
+            {
+                OrderComboBox.SelectedIndex = 0;
+                OrderComboBox.IsEnabled = true;
+            }
+        }
+
+        private void UpdateOrderStatusInfo()
+        {
+            try
+            {
+                using (var connection = dbconnection.GetConnection())
+                {
+                    connection.Open();
+                    string query = @"
+                        SELECT s.statusname, o.orderdate, c.lastname || ' ' || c.firstname as clientname
+                        FROM orders o
+                        LEFT JOIN status s ON o.statusid = s.statusid
+                        LEFT JOIN client c ON o.clientid = c.clientid
+                        WHERE o.orderid = @orderid";
+
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@orderid", selectedOrderId);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string statusName = reader["statusname"]?.ToString() ?? "Неизвестно";
+                                DateTime orderDate = reader["orderdate"] != DBNull.Value ?
+                                    Convert.ToDateTime(reader["orderdate"]) : DateTime.MinValue;
+                                string clientName = reader["clientname"]?.ToString() ?? "Неизвестный клиент";
+
+                                OrderStatusTextBlock.Text = $"Статус: {statusName}";
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при загрузке статуса заказа: {ex.Message}");
+            }
+        }
+
+        private void UpdateTotalAmount()
+        {
+            try
+            {
+                using (var connection = dbconnection.GetConnection())
+                {
+                    connection.Open();
+                    string query = @"
+                        SELECT 
+                            COUNT(*) as items_count,
+                            SUM(price * quantity) as total_amount
+                        FROM ordersdetails 
+                        WHERE orderid = @orderid";
+
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@orderid", selectedOrderId);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                totalItems = reader["items_count"] != DBNull.Value ?
+                                    Convert.ToInt32(reader["items_count"]) : 0;
+                                totalAmount = reader["total_amount"] != DBNull.Value ?
+                                    Convert.ToDecimal(reader["total_amount"]) : 0;
+
+                                TotalAmountTextBlock.Text = $"Итого: {totalAmount:0.00} ₽";
+                                ItemsCountSummaryTextBlock.Text = $"Позиций: {totalItems}";
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при расчете суммы: {ex.Message}");
+            }
         }
 
         // Загрузка блюд из таблицы dish
@@ -290,16 +447,38 @@ namespace Practice
                         LEFT JOIN category c ON od.categoryid = c.categoryid
                         LEFT JOIN client cl ON od.clientid = cl.clientid
                         LEFT JOIN employee e ON od.employeeid = e.employeeid
-                        LEFT JOIN status s ON od.statusid = s.statusid
-                        ORDER BY od.orderdetailsid";
+                        LEFT JOIN status s ON od.statusid = s.statusid";
+
+                    // Добавляем фильтр, если выбран конкретный заказ
+                    if (selectedOrderId != -1)
+                    {
+                        query += " WHERE od.orderid = @orderid";
+                    }
+
+                    query += " ORDER BY od.orderdetailsid";
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {
+                        // Добавляем параметр, если фильтруем по заказу
+                        if (selectedOrderId != -1)
+                        {
+                            command.Parameters.AddWithValue("@orderid", selectedOrderId);
+                        }
+
                         using (var adapter = new NpgsqlDataAdapter(command))
                         {
                             DataTable dataTable = new DataTable();
                             adapter.Fill(dataTable);
                             OrderDetailsDataGrid.ItemsSource = dataTable.DefaultView;
+
+                            // Обновляем счетчик
+                            ItemsCountTextBlock.Text = $"Всего позиций: {dataTable.Rows.Count}";
+
+                            // Обновляем итоговую сумму для конкретного заказа
+                            if (selectedOrderId != -1)
+                            {
+                                UpdateTotalAmount();
+                            }
                         }
                     }
                 }
@@ -421,7 +600,7 @@ namespace Practice
         {
             if (DishComboBox.Items.Count > 0)
                 DishComboBox.SelectedIndex = 0;
-            if (OrderComboBox.Items.Count > 0)
+            if (OrderComboBox.Items.Count > 0 && OrderComboBox.IsEnabled)
                 OrderComboBox.SelectedIndex = 0;
             if (CategoryComboBox.Items.Count > 0)
                 CategoryComboBox.SelectedIndex = 0;
@@ -457,8 +636,8 @@ namespace Practice
                         }
                     }
 
-                    // Устанавливаем выбранный заказ
-                    if (selectedRow["orderid"] != DBNull.Value)
+                    // Устанавливаем выбранный заказ (только если не в режиме просмотра одного заказа)
+                    if (selectedRow["orderid"] != DBNull.Value && OrderComboBox.IsEnabled)
                     {
                         int orderid = Convert.ToInt32(selectedRow["orderid"]);
                         foreach (DataRowView item in OrderComboBox.Items)
@@ -555,7 +734,11 @@ namespace Practice
                 return;
             }
 
-            if (OrderComboBox.SelectedValue == null)
+            // Если в режиме просмотра одного заказа, используем selectedOrderId
+            int orderid = selectedOrderId != -1 ? selectedOrderId :
+                (OrderComboBox.SelectedValue != null ? Convert.ToInt32(OrderComboBox.SelectedValue) : -1);
+
+            if (orderid == -1)
             {
                 MessageBox.Show("Пожалуйста, выберите заказ.",
                                 "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -605,7 +788,6 @@ namespace Practice
             }
 
             int dishid = Convert.ToInt32(DishComboBox.SelectedValue);
-            int orderid = Convert.ToInt32(OrderComboBox.SelectedValue);
             int categoryid = Convert.ToInt32(CategoryComboBox.SelectedValue);
             int clientid = Convert.ToInt32(ClientComboBox.SelectedValue);
             int employeeid = Convert.ToInt32(EmployeeComboBox.SelectedValue);
@@ -641,7 +823,11 @@ namespace Practice
                         return;
                     }
 
-                    if (OrderComboBox.SelectedValue == null)
+                    // Если в режиме просмотра одного заказа, используем selectedOrderId
+                    int orderid = selectedOrderId != -1 ? selectedOrderId :
+                        (OrderComboBox.SelectedValue != null ? Convert.ToInt32(OrderComboBox.SelectedValue) : -1);
+
+                    if (orderid == -1)
                     {
                         MessageBox.Show("Пожалуйста, выберите заказ.",
                                         "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -691,7 +877,6 @@ namespace Practice
                     }
 
                     int dishid = Convert.ToInt32(DishComboBox.SelectedValue);
-                    int orderid = Convert.ToInt32(OrderComboBox.SelectedValue);
                     int categoryid = Convert.ToInt32(CategoryComboBox.SelectedValue);
                     int clientid = Convert.ToInt32(ClientComboBox.SelectedValue);
                     int employeeid = Convert.ToInt32(EmployeeComboBox.SelectedValue);
@@ -759,12 +944,21 @@ namespace Practice
         {
             LoadData();
             LoadDishes();
-            LoadOrders();
+            if (selectedOrderId == -1) // Только если не в режиме просмотра одного заказа
+            {
+                LoadOrders();
+            }
             LoadCategories();
             LoadClients();
             LoadEmployees();
             LoadStatuses();
             ClearInputFields();
+        }
+
+        // Обработчик кнопки "Назад к заказам"
+        private void BackToOrdersButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

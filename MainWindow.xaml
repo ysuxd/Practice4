@@ -5,13 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Авторизация - Столовая КНГК" 
-        Height="400" 
-        Width="450"
+        Height="500" 
+    Width="450"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="#f8f9fa"
         SizeToContent="Height">
-    <!-- Добавил автоматическую подстройку высоты -->
 
     <Window.Resources>
         <!-- Кисти цветов колледжа -->
@@ -167,6 +166,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Заголовок формы -->
@@ -182,9 +182,7 @@
                     <Grid Grid.Row="1" Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="80"/>
-                            <!-- Фиксированная ширина для метки -->
                             <ColumnDefinition Width="*"/>
-                            <!-- Оставшееся пространство для поля ввода -->
                         </Grid.ColumnDefinitions>
 
                         <Label Content="Логин:" 
@@ -198,7 +196,7 @@
                     </Grid>
 
                     <!-- Пароль -->
-                    <Grid Grid.Row="2" Margin="0,0,0,30">
+                    <Grid Grid.Row="2" Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="*"/>
@@ -214,31 +212,81 @@
                                      KeyDown="PasswordBox_KeyDown"/>
                     </Grid>
 
+                    <!-- Капча -->
+                    <Grid Grid.Row="3" Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Content="Капча:" 
+                               Grid.Column="0"
+                               Style="{StaticResource LabelStyle}"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Border x:Name="CaptchaContainer"
+                                    BorderBrush="#cccccc"
+                                    BorderThickness="1"
+                                    Background="#f9f9f9"
+                                    Padding="10"
+                                    Margin="0,0,10,0"
+                                    CornerRadius="3">
+                                <TextBlock x:Name="CaptchaTextBlock"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           Foreground="#333333"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Text=""/>
+                            </Border>
+
+                            <Button x:Name="RefreshCaptchaButton"
+                                    Content="🔄"
+                                    FontSize="14"
+                                    Width="32"
+                                    Height="32"
+                                    Background="#e0e0e0"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="RefreshCaptchaButton_Click"
+                                    ToolTip="Обновить капчу"/>
+                        </StackPanel>
+
+                        <TextBox x:Name="CaptchaTextBox" 
+                                 Grid.Column="2"
+                                 Style="{StaticResource InputFieldStyle}"
+                                 Width="80"
+                                 Margin="10,0,0,0"
+                                 KeyDown="CaptchaTextBox_KeyDown"/>
+                    </Grid>
+
                     <!-- Сообщение об ошибке -->
                     <Border x:Name="ErrorMessageBorder"
-                            Grid.Row="3"
-                            Background="#ffebee"
-                            CornerRadius="5"
-                            BorderBrush="#ffcdd2"
-                            BorderThickness="1"
-                            Padding="12,8"
-                            Margin="0,0,0,20"
-                            Visibility="Collapsed">
+        Grid.Row="4"
+        Background="#ffebee"
+        CornerRadius="5"
+        BorderBrush="#ffcdd2"
+        BorderThickness="1"
+        Padding="12,8"
+        Margin="0,0,0,20"
+        Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚠️" 
-                                       FontSize="13"
-                                       Margin="0,0,8,0"
-                                       VerticalAlignment="Center"/>
+                   FontSize="13"
+                   Margin="0,0,8,0"
+                   VerticalAlignment="Center"/>
                             <TextBlock x:Name="ErrorMessageTextBlock"
-                                       Foreground="#d32f2f"
-                                       FontSize="12"
-                                       TextWrapping="Wrap"
-                                       VerticalAlignment="Center"/>
+                   Foreground="#d32f2f"
+                   FontSize="12"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
+
                     <!-- Кнопки -->
-                    <StackPanel Grid.Row="4" 
+                    <StackPanel Grid.Row="5" 
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Center"
                                 Margin="0,10,0,0">

@@ -292,24 +292,7 @@
                                     Margin="0,0,0,15"
                                     Click="EmployeeButton_Click"/>
 
-                            <!-- Статистика -->
-                            <Border Background="{StaticResource LightBrush}"
-                                    CornerRadius="6"
-                                    Padding="10"
-                                    Margin="0,10,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="📈 Сегодня" 
-                                               Foreground="{StaticResource SecondaryBrush}"
-                                               FontWeight="SemiBold"
-                                               Margin="0,0,0,5"/>
-                                    <TextBlock Text="Заказов: 127" 
-                                               Foreground="{StaticResource TextDarkBrush}"
-                                               FontSize="13"/>
-                                    <TextBlock Text="Студентов: 84" 
-                                               Foreground="{StaticResource TextDarkBrush}"
-                                               FontSize="13"/>
-                                </StackPanel>
-                            </Border>
+                            
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -355,30 +338,7 @@
                                     Margin="0,0,0,15"
                                     Click="RolesButton_Click"/>
 
-                            <!-- Информация о системе -->
-                            <Border Grid.Row="2" 
-                                    Background="#fff8e1"
-                                    CornerRadius="6"
-                                    Padding="12"
-                                    Margin="0,20,0,0"
-                                    BorderBrush="#ffe082"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="ℹ️ Информация" 
-                                               Foreground="{StaticResource OrangeTextBrush}"
-                                               FontWeight="SemiBold"
-                                               Margin="0,0,0,5"/>
-                                    <TextBlock Text="• Версия: 2.1 (2024)" 
-                                               Foreground="{StaticResource TextDarkBrush}"
-                                               FontSize="12"/>
-                                    <TextBlock Text="• Администратор: Иванов А.С." 
-                                               Foreground="{StaticResource TextDarkBrush}"
-                                               FontSize="12"/>
-                                    <TextBlock Text="• Столовая №1, корпус А" 
-                                               Foreground="{StaticResource TextDarkBrush}"
-                                               FontSize="12"/>
-                                </StackPanel>
-                            </Border>
+                            
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -413,19 +373,7 @@
                                    FontSize="13"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" 
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="🕐 " 
-                                   Foreground="#666"
-                                   Margin="0,0,5,0"/>
-                        <TextBlock Text="12:45" 
-                                   Foreground="{StaticResource PrimaryBrush}"
-                                   FontWeight="Bold"/>
-                        <TextBlock Text=" | 20.12.2024" 
-                                   Foreground="#666"
-                                   Margin="5,0,0,0"/>
-                    </StackPanel>
+                    
                 </Grid>
             </Border>
         </Grid>

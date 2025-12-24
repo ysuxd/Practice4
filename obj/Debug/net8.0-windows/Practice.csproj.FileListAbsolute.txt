@@ -51,5 +51,3 @@ C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debu
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderDetailsWindow.g.cs
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RegistrationWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RegistrationWindow.g.cs
-C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MyOrdersWindow.baml
-C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MyOrdersWindow.g.cs

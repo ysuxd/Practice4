@@ -296,7 +296,7 @@ namespace Practice
             TimeTextBox.Text = "12:00";
         }
 
-        // Обработчик выбора строки в DataGrid
+        // Обработчик выбора строки в DataGrid - ИСПРАВЛЕН
         private void OrderDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (OrderDataGrid.SelectedItem is DataRowView selectedRow)
@@ -345,21 +345,57 @@ namespace Practice
                         }
                     }
 
-                    // Устанавливаем дату и время
+                    // Устанавливаем дату - ИСПРАВЛЕНА ОШИБКА
                     if (selectedRow["orderdate"] != DBNull.Value)
                     {
-                        OrderDatePicker.SelectedDate = Convert.ToDateTime(selectedRow["orderdate"]);
+                        // Проверяем тип данных
+                        var orderdateValue = selectedRow["orderdate"];
+
+                        if (orderdateValue is DateTime dateTimeValue)
+                        {
+                            OrderDatePicker.SelectedDate = dateTimeValue;
+                        }
+                        else if (orderdateValue is DateOnly dateOnlyValue)
+                        {
+                            // Преобразуем DateOnly в DateTime
+                            OrderDatePicker.SelectedDate = dateOnlyValue.ToDateTime(TimeOnly.MinValue);
+                        }
+                        else
+                        {
+                            // Пробуем преобразовать строку
+                            string dateString = orderdateValue.ToString();
+                            if (DateTime.TryParse(dateString, out DateTime parsedDate))
+                            {
+                                OrderDatePicker.SelectedDate = parsedDate;
+                            }
+                        }
                     }
 
+                    // Устанавливаем время
                     if (selectedRow["ordertime"] != DBNull.Value)
                     {
-                        TimeSpan time = (TimeSpan)selectedRow["ordertime"];
-                        TimeTextBox.Text = time.ToString(@"hh\:mm");
+                        var timeValue = selectedRow["ordertime"];
+
+                        if (timeValue is TimeSpan timeSpanValue)
+                        {
+                            TimeTextBox.Text = timeSpanValue.ToString(@"hh\:mm");
+                        }
+                        else if (timeValue is TimeOnly timeOnlyValue)
+                        {
+                            // Преобразуем TimeOnly в TimeSpan
+                            TimeTextBox.Text = timeOnlyValue.ToString(@"hh\:mm");
+                        }
+                        else
+                        {
+                            // Пробуем преобразовать строку
+                            string timeString = timeValue.ToString();
+                            TimeTextBox.Text = timeString;
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при загрузке данных: {ex.Message}",
+                    MessageBox.Show($"Ошибка при загрузке данных: {ex.Message}\nТип данных orderdate: {selectedRow["orderdate"]?.GetType().Name}",
                                     "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
@@ -529,6 +565,33 @@ namespace Practice
             }
         }
 
+        private void ViewDetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrderDataGrid.SelectedItem is DataRowView selectedRow)
+            {
+                try
+                {
+                    int orderId = Convert.ToInt32(selectedRow["orderid"]);
+
+                    // Открываем окно деталей только для выбранного заказа
+                    OrderDetailsWindow detailsWindow = new OrderDetailsWindow(orderId);
+                    detailsWindow.Owner = this;
+                    detailsWindow.Show();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при открытии деталей заказа: {ex.Message}",
+                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите заказ для просмотра деталей.",
+                                "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        // Добавьте также кнопку обновления, если её нет
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             LoadData();

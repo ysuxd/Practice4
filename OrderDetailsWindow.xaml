@@ -24,6 +24,8 @@
         <SolidColorBrush x:Key="WarningBrush" Color="#ff9800"/>
         <SolidColorBrush x:Key="ErrorBrush" Color="#f44336"/>
         <SolidColorBrush x:Key="InfoBrush" Color="#2196F3"/>
+        <SolidColorBrush x:Key="ViewBrush" Color="#9c27b0"/>
+        <SolidColorBrush x:Key="DetailsBrush" Color="#009688"/>
 
         <!-- Стиль для кнопок -->
         <Style x:Key="CollegeButtonStyle" TargetType="Button">
@@ -87,6 +89,10 @@
 
         <Style x:Key="DeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
             <Setter Property="Background" Value="{StaticResource ErrorBrush}"/>
+        </Style>
+
+        <Style x:Key="ViewButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource ViewBrush}"/>
         </Style>
 
         <!-- Стиль для заголовков секций -->
@@ -197,32 +203,65 @@
                     <StackPanel Grid.Column="1" 
                                 Margin="15,0,0,0"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="Детали заказов" 
+                        <TextBlock x:Name="WindowTitleTextBlock"
+                                   Text="Детали заказов" 
                                    Foreground="White"
                                    FontSize="20"
                                    FontWeight="Bold"/>
-                        <TextBlock Text="Управление позициями заказов" 
+                        <TextBlock x:Name="WindowSubtitleTextBlock"
+                                   Text="Управление позициями заказов" 
                                    Foreground="#ccd9ff"
                                    FontSize="14"
                                    Margin="0,3,0,0"/>
                     </StackPanel>
 
-                    <!-- Статус -->
-                    <Border Grid.Column="2" 
-                            Background="#002244"
-                            CornerRadius="15"
-                            Padding="10,5"
-                            VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📊" 
-                                       Margin="0,0,5,0"
-                                       Foreground="White"/>
-                            <TextBlock Text="Всего позиций: 0" 
-                                       Foreground="White"
-                                       FontSize="12"
-                                       FontWeight="Medium"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Статус и информация о заказе -->
+                    <StackPanel Grid.Column="2" 
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                Margin="10,0,0,0">
+
+                        <!-- Информация о конкретном заказе (видна только при просмотре одного заказа) -->
+                        <Border x:Name="OrderInfoBorder"
+                                Background="#002244"
+                                CornerRadius="15"
+                                Padding="10,5"
+                                Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋" 
+                                           Margin="0,0,5,0"
+                                           Foreground="White"/>
+                                <StackPanel>
+                                    <TextBlock x:Name="OrderIdTextBlock" 
+                                               Text="Заказ #0" 
+                                               Foreground="White"
+                                               FontSize="12"
+                                               FontWeight="Medium"/>
+                                    <TextBlock x:Name="OrderStatusTextBlock" 
+                                               Text="Статус: -" 
+                                               Foreground="#ccd9ff"
+                                               FontSize="10"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Общая информация (видна всегда) -->
+                        <Border Background="#004488"
+                                CornerRadius="15"
+                                Padding="10,5"
+                                Margin="10,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" 
+                                           Margin="0,0,5,0"
+                                           Foreground="White"/>
+                                <TextBlock x:Name="ItemsCountTextBlock" 
+                                           Text="Всего позиций: 0" 
+                                           Foreground="White"
+                                           FontSize="12"
+                                           FontWeight="Medium"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -285,6 +324,17 @@
                                 <DataGridTextColumn Header="Кол-во" 
                                                     Binding="{Binding quantity}" 
                                                     Width="80"/>
+
+                                <DataGridTextColumn Header="Сумма" 
+                                                    Width="100"
+                                                    IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{Binding Path=., Converter={x:Static local:PriceMultiplierConverter.Instance}}"/>
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>
@@ -323,7 +373,7 @@
                                 </StackPanel>
 
                                 <!-- Заказ -->
-                                <StackPanel Grid.Column="1" Margin="5,0,10,0">
+                                <StackPanel x:Name="OrderPanel" Grid.Column="1" Margin="5,0,10,0">
                                     <TextBlock Text="Заказ" Style="{StaticResource FieldLabelStyle}"/>
                                     <ComboBox x:Name="OrderComboBox"
                                               Style="{StaticResource InputFieldStyle}"
@@ -441,30 +491,85 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Информация и кнопка обновления -->
+                            <!-- Информация, итоги и кнопка обновления -->
                             <Border Grid.Row="2" 
                                     Background="{StaticResource LightBrush}"
                                     CornerRadius="6"
                                     Padding="12">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Информация -->
+                                    <StackPanel Grid.Column="0" 
+                                                Orientation="Horizontal" 
+                                                VerticalAlignment="Center"
+                                                Margin="0,0,15,0">
                                         <TextBlock Text="ℹ️" 
                                                    Foreground="{StaticResource SecondaryBrush}"
                                                    Margin="0,0,5,0"/>
-                                        <TextBlock Text="Для редактирования выберите запись в таблице" 
+                                        <TextBlock x:Name="InfoTextBlock"
+                                                   Text="Для редактирования выберите запись в таблице" 
                                                    Foreground="{StaticResource TextDarkBrush}"
                                                    FontSize="12"/>
                                     </StackPanel>
 
+                                    <!-- Итоговая сумма (видна только при просмотре одного заказа) -->
+                                    <Border x:Name="TotalAmountBorder"
+                                            Grid.Column="1" 
+                                            Background="{StaticResource SuccessBrush}"
+                                            CornerRadius="5"
+                                            Padding="10,5"
+                                            HorizontalAlignment="Right"
+                                            Margin="0,0,15,0"
+                                            Visibility="Collapsed">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="💰" 
+                                                       Margin="0,0,5,0"
+                                                       Foreground="White"/>
+                                            <StackPanel>
+                                                <TextBlock x:Name="TotalAmountTextBlock"
+                                                           Text="Итого: 0.00 ₽" 
+                                                           Foreground="White"
+                                                           FontSize="12"
+                                                           FontWeight="Bold"/>
+                                                <TextBlock x:Name="ItemsCountSummaryTextBlock"
+                                                           Text="Позиций: 0" 
+                                                           Foreground="#e0ffe0"
+                                                           FontSize="10"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Кнопка назад к заказам (видна только при просмотре одного заказа) -->
+                                    <Button x:Name="BackToOrdersButton"
+                                            Content="← К заказам" 
+                                            Style="{StaticResource ViewButtonStyle}"
+                                            Click="BackToOrdersButton_Click"
+                                            Grid.Column="2"
+                                            MinWidth="120"
+                                            Margin="0,0,10,0"
+                                            Visibility="Collapsed"
+                                            ToolTip="Вернуться к списку заказов">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="←" Margin="0,0,5,0"/>
+                                                    <TextBlock Text="К заказам"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+
+                                    <!-- Кнопка обновления -->
                                     <Button Content="Обновить" 
                                             Style="{StaticResource ActionButtonStyle}"
                                             Click="RefreshButton_Click"
-                                            Grid.Column="1"
+                                            Grid.Column="3"
                                             MinWidth="120"
                                             ToolTip="Обновить данные таблицы">
                                         <Button.ContentTemplate>

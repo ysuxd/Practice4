@@ -48,18 +48,14 @@ namespace Practice
                         // Оставляем оригинальные имена: categoryid и categoryname
                         CategoryDataGrid.ItemsSource = dataTable.DefaultView;
 
-                        // Обновляем счетчик категорий
-                        UpdateCategoriesCount(dataTable.Rows.Count);
+                        
                     }
                 }
             }
         }
 
         // Метод для обновления счетчика категорий
-        private void UpdateCategoriesCount(int count)
-        {
-            CategoriesCountText.Text = $"Всего категорий: {count}";
-        }
+        
 
         private void AddCategory(string categoryName)
         {

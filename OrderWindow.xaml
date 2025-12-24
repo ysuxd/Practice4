@@ -436,15 +436,15 @@
                                             </Button.ContentTemplate>
                                         </Button>
 
-                                        <Button Content="Обновить"
+                                        <Button Content="Просмотреть детали"
                                                 Style="{StaticResource RefreshButtonStyle}"
-                                                Click="RefreshButton_Click"
+                                                Click="ViewDetailsButton_Click"
                                                 ToolTip="Обновить список заказов">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="🔄" Margin="0,0,5,0"/>
-                                                        <TextBlock Text="Обновить"/>
+                                                        <TextBlock Text="Детали"/>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </Button.ContentTemplate>

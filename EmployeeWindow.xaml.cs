@@ -54,18 +54,14 @@ namespace Practice
                         // Оставляем оригинальные имена: employeeid, firstname, surname, lastname, fullname
                         EmployeeDataGrid.ItemsSource = dataTable.DefaultView;
 
-                        // Обновляем счетчик сотрудников
-                        UpdateEmployeesCount(dataTable.Rows.Count);
+                        
                     }
                 }
             }
         }
 
         // Метод для обновления счетчика сотрудников
-        private void UpdateEmployeesCount(int count)
-        {
-            EmployeesCountText.Text = $"Всего сотрудников: {count}";
-        }
+        
 
         private void AddEmployee(string firstName, string surname, string lastName)
         {

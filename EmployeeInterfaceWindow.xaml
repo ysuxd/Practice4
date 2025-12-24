@@ -5,8 +5,396 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Practice"
         mc:Ignorable="d"
-        Title="EmployeeInterfaceWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="Панель сотрудника столовой" 
+        Height="600" 
+        Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#f8f9fa">
+
+    <Window.Resources>
+        <!-- Кисти цветов колледжа -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0055a5"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#003366"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#ff6600"/>
+        <SolidColorBrush x:Key="LightBrush" Color="#e6f0ff"/>
+        <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+        <SolidColorBrush x:Key="GrayLightBrush" Color="#e0e0e0"/>
+        <SolidColorBrush x:Key="TextDarkBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4caf50"/>
+        <SolidColorBrush x:Key="EmployeeBrush" Color="#2196F3"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#f44336"/>
+
+        <!-- Стиль для кнопок -->
+        <Style x:Key="CollegeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource EmployeeBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter Grid.Column="1" 
+                                                  Content="{TemplateBinding Content}"
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"
+                                                  Margin="5,0,0,0"/>
+
+                                <!-- Иконка -->
+                                <TextBlock x:Name="icon" 
+                                           Grid.Column="0"
+                                           Text="{TemplateBinding Tag}"
+                                           FontSize="18"
+                                           VerticalAlignment="Center"
+                                           Foreground="White"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#002244"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для заголовков секций -->
+        <Style x:Key="SectionHeaderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource LightBrush}"/>
+            <Setter Property="CornerRadius" Value="6,6,0,0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderBrush" Value="#d1e0ff"/>
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        </Style>
+
+        <!-- Стиль для текста заголовков -->
+        <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Градиент для фона -->
+        <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#f0f5ff" Offset="0"/>
+            <GradientStop Color="#ffffff" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Стиль для информационного текста -->
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BackgroundGradient}">
+        <!-- Основной контейнер -->
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Шапка с логотипом колледжа -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource PrimaryBrush}"
+                    CornerRadius="10"
+                    Margin="0,0,0,20"
+                    Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Логотип -->
+                    <Border Grid.Column="0" 
+                            Background="White" 
+                            Width="60" 
+                            Height="60"
+                            CornerRadius="30"
+                            Padding="10">
+                        <Viewbox>
+                            <TextBlock Text="👨‍🍳" 
+                                       FontSize="30"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!-- Название и информация о сотруднике -->
+                    <StackPanel Grid.Column="1" 
+                                Margin="20,0,0,0"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Касимовский нефтегазовый колледж" 
+                                   Foreground="White"
+                                   FontSize="22"
+                                   FontWeight="Bold"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <TextBlock Text="Столовая - Панель сотрудника" 
+                                       Foreground="#ccd9ff"
+                                       FontSize="16"/>
+                            
+                            
+                        </StackPanel>
+                    </StackPanel>
+
+                    
+                </Grid>
+            </Border>
+
+            <!-- Основное содержимое -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Колонка 1: Работа с меню -->
+                <Border Grid.Column="0" 
+                        Margin="0,0,10,0"
+                        Background="White"
+                        CornerRadius="8"
+                        BorderBrush="{StaticResource GrayLightBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Заголовок секции -->
+                        <Border Grid.Row="0" 
+                                Background="{StaticResource LightBrush}"
+                                CornerRadius="6,6,0,0"
+                                Padding="15,10"
+                                BorderBrush="#d1e0ff"
+                                BorderThickness="1,1,1,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🍽️" FontSize="20" Margin="0,0,10,0" Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="Работа с меню" 
+                                           Foreground="{StaticResource SecondaryBrush}"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки и информация -->
+                        <StackPanel Grid.Row="1" 
+                                    Margin="15"
+                                    VerticalAlignment="Top">
+
+                            <Button Content="Просмотр меню" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📋"
+                                    Height="60"
+                                    Margin="0,0,0,15"
+                                    Click="DishButton_Click"
+                                    ToolTip="Просмотр и редактирование блюд в меню"/>
+
+                            
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Колонка 2: Управление заказами -->
+                <Border Grid.Column="1" 
+                        Margin="10,0,0,0"
+                        Background="White"
+                        CornerRadius="8"
+                        BorderBrush="{StaticResource GrayLightBrush}"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Заголовок секции -->
+                        <Border Grid.Row="0" 
+                                Background="{StaticResource LightBrush}"
+                                CornerRadius="6,6,0,0"
+                                Padding="15,10"
+                                BorderBrush="#d1e0ff"
+                                BorderThickness="1,1,1,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="20" Margin="0,0,10,0" Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="Управление заказами" 
+                                           Foreground="{StaticResource SecondaryBrush}"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Кнопки -->
+                        <Grid Grid.Row="1" 
+                              Margin="15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Button Content="Заказы студентов" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📦"
+                                    Height="55"
+                                    Margin="0,0,0,10"
+                                    Grid.Row="0"
+                                    Click="OrderButton_Click"
+                                    ToolTip="Просмотр и управление заказами студентов"/>
+
+                            <Button Content="Детали заказов" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="📝"
+                                    Height="55"
+                                    Margin="0,0,0,10"
+                                    Grid.Row="1"
+                                    Click="OrderDetailsButton_Click"
+                                    ToolTip="Просмотр деталей и позиций в заказах"/>
+
+                            <Button Content="Клиенты (студенты)" 
+                                    Style="{StaticResource CollegeButtonStyle}"
+                                    Tag="👥"
+                                    Height="55"
+                                    Margin="0,0,0,15"
+                                    Grid.Row="2"
+                                    Click="ClientButton_Click"
+                                    ToolTip="Просмотр информации о клиентах-студентах"/>
+
+                            
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Нижняя панель с информацией и кнопками -->
+            <Border Grid.Row="2" 
+                    Background="White"
+                    CornerRadius="8"
+                    Margin="0,20,0,0"
+                    BorderBrush="{StaticResource GrayLightBrush}"
+                    BorderThickness="1">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Информация о системе -->
+                    <StackPanel Grid.Column="0" 
+                                Orientation="Vertical"
+                                VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="12" Height="12" 
+                                     Fill="{StaticResource SuccessBrush}" 
+                                     Margin="0,0,8,0"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock Text="Столовая Касимовского нефтегазового колледжа" 
+                                       Foreground="{StaticResource SecondaryBrush}"
+                                       FontSize="14"/>
+                        </StackPanel>
+                        <TextBlock x:Name="CurrentDateText"
+                                   Text="Режим: Панель сотрудника"
+                                   Foreground="#666"
+                                   FontSize="12"
+                                   Margin="20,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Кнопки действий -->
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal"
+                                Margin="0,0,15,0">
+                        <Button Content="Обновить" 
+                                Style="{StaticResource CollegeButtonStyle}"
+                                Tag="🔄"
+                                Height="35"
+                                Padding="10,5"
+                                MinWidth="100"
+                                Click="RefreshButton_Click"
+                                ToolTip="Обновить информацию"/>
+                    </StackPanel>
+
+                    <!-- Кнопка выхода -->
+                    <Button Grid.Column="2" 
+                            Content="Выйти" 
+                            Background="#f44336"
+                            Foreground="White"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Height="35"
+                            Padding="15,5"
+                            MinWidth="100"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="LogoutButton_Click"
+                            ToolTip="Выйти из системы">
+                        <Button.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🚪" Margin="0,0,5,0"/>
+                                    <TextBlock Text="Выйти"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </Button.ContentTemplate>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Декоративный элемент -->
+        <Border HorizontalAlignment="Right" 
+                VerticalAlignment="Bottom"
+                Margin="30"
+                Width="80" 
+                Height="80"
+                Opacity="0.05">
+            <Border.Background>
+                <DrawingBrush TileMode="Tile" Viewport="0,0,40,40" ViewportUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <EllipseGeometry Center="20,20" RadiusX="12" RadiusY="12"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <SolidColorBrush Color="#2196F3"/>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Border.Background>
+        </Border>
     </Grid>
 </Window>
