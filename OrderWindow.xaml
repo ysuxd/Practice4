@@ -85,6 +85,10 @@
         <Style x:Key="RefreshButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
             <Setter Property="Background" Value="{StaticResource RefreshBrush}"/>
         </Style>
+        <Style x:Key="AcceptOrderButtonStyle" TargetType="Button" BasedOn="{StaticResource OperationButtonStyle}">
+            <Setter Property="Background" Value="#FF9800"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
 
         <!-- Стиль для заголовков секций -->
         <Style x:Key="SectionHeaderStyle" TargetType="Border">
@@ -391,9 +395,11 @@
                                     </StackPanel>
 
                                     <!-- Кнопки -->
-                                    <StackPanel Grid.Column="1" 
-                                                Orientation="Horizontal"
-                                                HorizontalAlignment="Right">
+
+                                    <StackPanel x:Name="ButtonsStackPanel" 
+            Grid.Column="1" 
+            Orientation="Horizontal"
+            HorizontalAlignment="Right">
                                         <Button Content="Добавить"
                                                 Style="{StaticResource AddButtonStyle}"
                                                 Click="AddButton_Click"

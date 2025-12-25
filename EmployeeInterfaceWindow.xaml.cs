@@ -58,7 +58,8 @@ namespace Practice
         {
             try
             {
-                OrderWindow orderWindow = new OrderWindow();
+                // Передаем CurrentUserId в OrderWindow
+                OrderWindow orderWindow = new OrderWindow(CurrentUserId);
                 orderWindow.Owner = this;
                 orderWindow.Show();
             }

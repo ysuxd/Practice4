@@ -9,12 +9,10 @@ C:\Работы студентов\4 Курс\practice\project\Practice\bin\Debu
 C:\Работы студентов\4 Курс\practice\project\Practice\bin\Debug\net8.0-windows\System.Diagnostics.DiagnosticSource.dll
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice.csproj.AssemblyReference.cache
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\AdminWindow.g.cs
-C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\App.g.cs
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice_MarkupCompile.cache
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice_MarkupCompile.lref
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\AdminWindow.baml
-C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice.g.resources
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice.GeneratedMSBuildEditorConfig.editorconfig
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\Practice.AssemblyInfoInputs.cache
@@ -51,3 +49,5 @@ C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debu
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\OrderDetailsWindow.g.cs
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RegistrationWindow.baml
 C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\RegistrationWindow.g.cs
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MainWindow.baml
+C:\Работы студентов\4 Курс\practice\project\Practice\obj\Debug\net8.0-windows\MainWindow.g.cs

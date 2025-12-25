@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Practice
 {
@@ -11,11 +12,27 @@ namespace Practice
         private DataTable clientsTable;
         private DataTable employeesTable;
         private DataTable statusesTable;
+        private int currentUserId; // ID текущего пользователя
+        private int currentEmployeeId; // ID сотрудника (если пользователь - сотрудник)
 
-        public OrderWindow()
+        public OrderWindow(int userId = 0)
         {
             InitializeComponent();
             dbconnection = new DatabaseConnection();
+            currentUserId = userId;
+
+            // Получаем employeeid по userid
+            if (userId > 0)
+            {
+                currentEmployeeId = GetEmployeeIdByUserId(userId);
+
+                // Если сотрудник найден, добавляем кнопку "Принять заказ"
+                if (currentEmployeeId > 0)
+                {
+                    AddAcceptOrderButton();
+                }
+            }
+
             LoadClients();      // Загружаем клиентов в ComboBox
             LoadEmployees();    // Загружаем сотрудников в ComboBox
             LoadStatuses();     // Загружаем статусы в ComboBox
@@ -24,6 +41,246 @@ namespace Practice
             // Устанавливаем текущую дату по умолчанию
             OrderDatePicker.SelectedDate = DateTime.Today;
         }
+
+        private int GetEmployeeIdByUserId(int userId)
+        {
+            try
+            {
+                using (var connection = dbconnection.GetConnection())
+                {
+                    connection.Open();
+                    string query = "SELECT employeeid FROM employee WHERE userid = @userid";
+
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@userid", userId);
+                        var result = command.ExecuteScalar();
+
+                        if (result != null && result != DBNull.Value)
+                        {
+                            return Convert.ToInt32(result);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при получении ID сотрудника: {ex.Message}",
+                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            return 0;
+        }
+
+        private void AddAcceptOrderButton()
+        {
+            // Создаем стиль для кнопки "Принять заказ"
+            var acceptOrderButtonStyle = new Style(typeof(Button), FindResource("AcceptOrderButtonStyle") as Style ?? FindResource("OperationButtonStyle") as Style);
+
+            // Создаем кнопку
+            Button acceptOrderButton = new Button
+            {
+                Content = "Принять заказ",
+                Style = acceptOrderButtonStyle,
+                ToolTip = "Принять выбранный заказ на себя",
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+
+            // Добавляем обработчик события
+            acceptOrderButton.Click += AcceptOrderButton_Click;
+
+            // Добавляем кнопку в StackPanel с кнопками
+            var buttonsStackPanel = FindName("ButtonsStackPanel") as StackPanel;
+            if (buttonsStackPanel != null)
+            {
+                // Вставляем перед кнопкой "Просмотреть детали"
+                int insertIndex = Math.Max(0, buttonsStackPanel.Children.Count - 1);
+                buttonsStackPanel.Children.Insert(insertIndex, acceptOrderButton);
+            }
+            else
+            {
+                // Если StackPanel не найден, добавляем рядом с другими кнопками
+                // Находим Grid, содержащий кнопки
+                var buttonsPanel = FindName("ButtonsPanel") as StackPanel;
+                if (buttonsPanel != null)
+                {
+                    buttonsPanel.Children.Add(acceptOrderButton);
+                }
+            }
+        }
+
+        private void AcceptOrder(int orderId)
+        {
+            try
+            {
+                if (currentEmployeeId <= 0)
+                {
+                    MessageBox.Show("Не удалось определить ID сотрудника.", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                using (var connection = dbconnection.GetConnection())
+                {
+                    connection.Open();
+
+                    // Проверяем, не принят ли уже заказ другим сотрудником
+                    string checkQuery = "SELECT employeeid FROM orders WHERE orderid = @orderid";
+                    using (var checkCmd = new NpgsqlCommand(checkQuery, connection))
+                    {
+                        checkCmd.Parameters.AddWithValue("@orderid", orderId);
+                        var result = checkCmd.ExecuteScalar();
+
+                        if (result != null && result != DBNull.Value && Convert.ToInt32(result) > 0)
+                        {
+                            int assignedEmployeeId = Convert.ToInt32(result);
+                            if (assignedEmployeeId != currentEmployeeId)
+                            {
+                                var dialogResult = MessageBox.Show(
+                                    $"Этот заказ уже принят сотрудником #{assignedEmployeeId}. Хотите переназначить его на себя?",
+                                    "Заказ уже принят",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Question);
+
+                                if (dialogResult != MessageBoxResult.Yes)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Вы уже приняли этот заказ.", "Информация",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                                return;
+                            }
+                        }
+                    }
+
+                    // Начинаем транзакцию для согласованного обновления
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Обновляем заказ в таблице orders
+                            string updateOrderQuery = @"
+                        UPDATE orders 
+                        SET employeeid = @employeeid 
+                        WHERE orderid = @orderid";
+
+                            using (var command = new NpgsqlCommand(updateOrderQuery, connection))
+                            {
+                                command.Transaction = transaction;
+                                command.Parameters.AddWithValue("@employeeid", currentEmployeeId);
+                                command.Parameters.AddWithValue("@orderid", orderId);
+
+                                int rowsAffected = command.ExecuteNonQuery();
+
+                                if (rowsAffected == 0)
+                                {
+                                    throw new Exception("Заказ не найден в таблице orders.");
+                                }
+                            }
+
+                            // 2. Обновляем все детали заказа в таблице ordersdetails
+                            string updateDetailsQuery = @"
+                        UPDATE ordersdetails 
+                        SET employeeid = @employeeid 
+                        WHERE orderid = @orderid AND (employeeid IS NULL OR employeeid != @employeeid)";
+
+                            using (var command = new NpgsqlCommand(updateDetailsQuery, connection))
+                            {
+                                command.Transaction = transaction;
+                                command.Parameters.AddWithValue("@employeeid", currentEmployeeId);
+                                command.Parameters.AddWithValue("@orderid", orderId);
+
+                                int detailsUpdated = command.ExecuteNonQuery();
+                                Console.WriteLine($"Обновлено {detailsUpdated} записей в ordersdetails для заказа #{orderId}");
+                            }
+
+                            // 3. Фиксируем транзакцию
+                            transaction.Commit();
+
+                            MessageBox.Show("Заказ успешно принят!\n" +
+                                          $"Сотрудник установлен в таблицах orders и ordersdetails.",
+                                          "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            // Обновляем данные
+                            LoadData();
+                        }
+                        catch (Exception ex)
+                        {
+                            try
+                            {
+                                transaction.Rollback();
+                                Console.WriteLine($"Транзакция откатана: {ex.Message}");
+                            }
+                            catch (Exception rollbackEx)
+                            {
+                                Console.WriteLine($"Ошибка при откате транзакции: {rollbackEx.Message}");
+                            }
+
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при принятии заказа: {ex.Message}",
+                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void AcceptOrderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrderDataGrid.SelectedItem is DataRowView selectedRow)
+            {
+                try
+                {
+                    int orderId = Convert.ToInt32(selectedRow["orderid"]);
+
+                    // Проверяем, не принят ли уже заказ другим сотрудником
+                    if (selectedRow["employeeid"] != DBNull.Value && Convert.ToInt32(selectedRow["employeeid"]) > 0)
+                    {
+                        int currentAssignedEmployeeId = Convert.ToInt32(selectedRow["employeeid"]);
+
+                        // Если заказ уже назначен текущему сотруднику
+                        if (currentAssignedEmployeeId == currentEmployeeId)
+                        {
+                            MessageBox.Show("Вы уже приняли этот заказ.", "Информация",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                            return;
+                        }
+
+                        // Если заказ назначен другому сотруднику
+                        var result = MessageBox.Show("Этот заказ уже назначен другому сотруднику. Хотите переназначить его на себя?",
+                            "Подтверждение",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (result != MessageBoxResult.Yes)
+                        {
+                            return;
+                        }
+                    }
+
+                    // Принимаем заказ
+                    AcceptOrder(orderId);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка: {ex.Message}",
+                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите заказ для принятия.",
+                                "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+
 
         // Загрузка клиентов из таблицы client
         private void LoadClients()
@@ -143,22 +400,27 @@ namespace Practice
                 using (var connection = dbconnection.GetConnection())
                 {
                     connection.Open();
+
+                    // Базовый запрос
                     string query = @"
-                SELECT 
-                    o.orderid, 
-                    o.clientid,
-                    CONCAT(c.lastname, ' ', c.firstname, ' ', COALESCE(c.surname, '')) as clientname,
-                    o.employeeid,
-                    CONCAT(e.lastname, ' ', e.firstname, ' ', COALESCE(e.surname, '')) as employeename,
-                    o.statusid,
-                    s.statusname,
-                    o.orderdate,
-                    o.ordertime
-                FROM orders o
-                LEFT JOIN client c ON o.clientid = c.clientid
-                LEFT JOIN employee e ON o.employeeid = e.employeeid
-                LEFT JOIN status s ON o.statusid = s.statusid
-                ORDER BY o.orderdate DESC, o.ordertime DESC";
+                        SELECT 
+                            o.orderid, 
+                            o.clientid,
+                            CONCAT(c.lastname, ' ', c.firstname, ' ', COALESCE(c.surname, '')) as clientname,
+                            o.employeeid,
+                            CONCAT(e.lastname, ' ', e.firstname, ' ', COALESCE(e.surname, '')) as employeename,
+                            o.statusid,
+                            s.statusname,
+                            o.orderdate,
+                            o.ordertime
+                        FROM orders o
+                        LEFT JOIN client c ON o.clientid = c.clientid
+                        LEFT JOIN employee e ON o.employeeid = e.employeeid
+                        LEFT JOIN status s ON o.statusid = s.statusid";
+
+                    // Если это сотрудник, можно показывать только его заказы или все
+                    // Для демонстрации показываем все заказы
+                    query += " ORDER BY o.orderdate DESC, o.ordertime DESC";
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {

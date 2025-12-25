@@ -391,6 +391,7 @@ namespace Practice
         // Оформление заказа
         // Оформление заказа
         // Оформление заказа
+        // Оформление заказа
         private void PlaceOrderButton_Click(object sender, RoutedEventArgs e)
         {
             if (cartItems.Count == 0)
@@ -429,75 +430,28 @@ namespace Practice
                 {
                     connection.Open();
 
-                    // СНАЧАЛА получим employeeid
-                    int employeeId = 1; // значение по умолчанию
-
-                    try
-                    {
-                        // Проверяем, есть ли сотрудник с ID=1
-                        string checkEmpQuery = "SELECT COUNT(*) FROM employee WHERE employeeid = 1";
-                        using (var checkCmd = new NpgsqlCommand(checkEmpQuery, connection))
-                        {
-                            int empCount = Convert.ToInt32(checkCmd.ExecuteScalar());
-
-                            if (empCount == 0)
-                            {
-                                // Ищем любого сотрудника
-                                string findEmpQuery = "SELECT employeeid FROM employee LIMIT 1";
-                                using (var findCmd = new NpgsqlCommand(findEmpQuery, connection))
-                                {
-                                    var result = findCmd.ExecuteScalar();
-                                    if (result != null && result != DBNull.Value)
-                                    {
-                                        employeeId = Convert.ToInt32(result);
-                                    }
-                                    else
-                                    {
-                                        // Если вообще нет сотрудников, создаем одного
-                                        string createEmpQuery = @"
-                                    INSERT INTO employee (firstname, lastname) 
-                                    VALUES ('Системный', 'Оператор') 
-                                    RETURNING employeeid";
-                                        using (var createCmd = new NpgsqlCommand(createEmpQuery, connection))
-                                        {
-                                            employeeId = Convert.ToInt32(createCmd.ExecuteScalar());
-                                            Console.WriteLine($"Создан системный оператор с ID={employeeId}");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Console.WriteLine($"Будет использован employeeid: {employeeId}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Ошибка при получении employeeid: {ex.Message}");
-                        employeeId = 1; // используем значение по умолчанию
-                    }
-
                     // Начинаем транзакцию
                     using (var transaction = connection.BeginTransaction())
                     {
                         try
                         {
-                            // 1. Создаем заказ - ВАЖНО: добавляем statusid = 4
+                            // 1. Создаем заказ - БЕЗ employeeid (оставляем NULL)
                             int orderId;
                             string orderQuery = @"
-                        INSERT INTO orders (clientid, employeeid, statusid, orderdate, ordertime) 
-                        VALUES (@clientid, @employeeid, @statusid, @orderdate, @ordertime) 
+                        INSERT INTO orders (clientid, statusid, orderdate, ordertime) 
+                        VALUES (@clientid, @statusid, @orderdate, @ordertime) 
                         RETURNING orderid";
 
                             using (var command = new NpgsqlCommand(orderQuery, connection))
                             {
                                 command.Transaction = transaction;
                                 command.Parameters.AddWithValue("@clientid", clientId);
-                                command.Parameters.AddWithValue("@employeeid", employeeId);
                                 command.Parameters.AddWithValue("@statusid", 4); // статус "В процессе"
                                 command.Parameters.AddWithValue("@orderdate", DateTime.Today);
                                 command.Parameters.AddWithValue("@ordertime", DateTime.Now.TimeOfDay);
 
                                 orderId = Convert.ToInt32(command.ExecuteScalar());
-                                Console.WriteLine($"Заказ создан: ID={orderId}, clientId={clientId}, employeeId={employeeId}, statusId=4");
+                                Console.WriteLine($"Заказ создан: ID={orderId}, clientId={clientId}, employeeId=NULL, statusId=4");
                             }
 
                             // 2. Добавляем детали заказа
@@ -507,12 +461,12 @@ namespace Practice
                                 int categoryId = 1;
                                 try
                                 {
-                                    using (var command = new NpgsqlCommand(
+                                    using (var categoryCmd = new NpgsqlCommand(
                                         "SELECT categoryid FROM dish WHERE dishid = @dishid", connection))
                                     {
-                                        command.Transaction = transaction;
-                                        command.Parameters.AddWithValue("@dishid", item.Id);
-                                        var result = command.ExecuteScalar();
+                                        categoryCmd.Transaction = transaction;
+                                        categoryCmd.Parameters.AddWithValue("@dishid", item.Id);
+                                        var result = categoryCmd.ExecuteScalar();
                                         if (result != null && result != DBNull.Value)
                                         {
                                             categoryId = Convert.ToInt32(result);
@@ -524,12 +478,11 @@ namespace Practice
                                     categoryId = 1;
                                 }
 
-                                // Добавляем детали заказа
+                                // Добавляем детали заказа - БЕЗ employeeid (оставляем NULL)
                                 string detailsQuery = @"
                             INSERT INTO ordersdetails 
-                            (dishid, orderid, categoryid, clientid, employeeid, statusid, price, quantity) 
-                            VALUES (@dishid, @orderid, @categoryid, @clientid, @employeeid,@statusid, @price, @quantity)";
-
+                            (dishid, orderid, categoryid, clientid, statusid, price, quantity) 
+                            VALUES (@dishid, @orderid, @categoryid, @clientid, @statusid, @price, @quantity)";
 
                                 using (var command = new NpgsqlCommand(detailsQuery, connection))
                                 {
@@ -538,8 +491,7 @@ namespace Practice
                                     command.Parameters.AddWithValue("@orderid", orderId);
                                     command.Parameters.AddWithValue("@categoryid", categoryId);
                                     command.Parameters.AddWithValue("@clientid", clientId);
-                                    command.Parameters.AddWithValue("@employeeid", employeeId);
-                                    command.Parameters.AddWithValue("@statusid", 4); 
+                                    command.Parameters.AddWithValue("@statusid", 4);
                                     command.Parameters.AddWithValue("@price", item.Price);
                                     command.Parameters.AddWithValue("@quantity", item.Quantity);
 
@@ -548,16 +500,16 @@ namespace Practice
                                 }
 
                                 // Уменьшаем количество блюд
-                                using (var command = new NpgsqlCommand(
+                                using (var updateCmd = new NpgsqlCommand(
                                     @"UPDATE dish 
                               SET quantity = quantity - @quantity 
                               WHERE dishid = @dishid",
                                     connection))
                                 {
-                                    command.Transaction = transaction;
-                                    command.Parameters.AddWithValue("@dishid", item.Id);
-                                    command.Parameters.AddWithValue("@quantity", item.Quantity);
-                                    command.ExecuteNonQuery();
+                                    updateCmd.Transaction = transaction;
+                                    updateCmd.Parameters.AddWithValue("@dishid", item.Id);
+                                    updateCmd.Parameters.AddWithValue("@quantity", item.Quantity);
+                                    updateCmd.ExecuteNonQuery();
                                 }
                             }
 
@@ -575,6 +527,7 @@ namespace Practice
                             MessageBox.Show($"✅ Заказ №{orderId} успешно оформлен!\n" +
                                           $"💰 Сумма: {TotalAmountText.Text}\n" +
                                           $"📊 Статус: В процессе\n" +
+                                          $"👨‍🍳 Заказ будет принят сотрудником столовой\n" +
                                           $"🙏 Спасибо за ваш заказ, {clientName}!",
                                           "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
@@ -590,8 +543,8 @@ namespace Practice
                                 Console.WriteLine($"Ошибка при откате транзакции: {rollbackEx.Message}");
                             }
 
-                            // Проверяем, если это ошибка о NULL в statutapi
-                            if (ex.Message.Contains("statutapi") && ex.Message.Contains("NOT NULL"))
+                            // Проверяем, если это ошибка о NULL в statusid
+                            if (ex.Message.Contains("statusid") && ex.Message.Contains("NOT NULL"))
                             {
                                 throw new Exception($"Ошибка при создании заказа: Не указан статус заказа. Проверьте наличие статуса с ID=4 в таблице status.");
                             }
